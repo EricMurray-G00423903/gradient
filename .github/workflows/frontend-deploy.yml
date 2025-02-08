@@ -1,0 +1,35 @@
+name: Deploy Frontend to Hostinger
+
+on:
+  push:
+    branches:
+      - main  # Runs only when code is merged to main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up Node.js (Version 21)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 21
+
+      - name: Install Dependencies & Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Deploy via FTP to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          port: ${{ secrets.FTP_PORT }}
+          local-dir: ./frontend/build/
+          server-dir: /public_html/
