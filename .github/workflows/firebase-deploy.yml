@@ -18,6 +18,10 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install Dependencies (Including ESLint)
+        working-directory: backend/functions
+        run: npm install
+
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
