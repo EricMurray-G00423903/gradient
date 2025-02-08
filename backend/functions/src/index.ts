@@ -17,3 +17,10 @@ import * as logger from "firebase-functions/logger";
 //   logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
+
+import * as functions from "firebase-functions";
+
+// Test function to confirm Firebase Functions deployment
+export const testDeployment = functions.https.onRequest((req, res) => {
+  res.send("🔥 Firebase Functions CI/CD Deployment Successful! 🚀");
+});
