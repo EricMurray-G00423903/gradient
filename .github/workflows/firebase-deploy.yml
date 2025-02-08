@@ -27,4 +27,5 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-key.json" >> $GITHUB_ENV
 
       - name: Deploy Firestore Rules & Functions
+        working-directory: backend
         run: firebase deploy --only firestore,functions
