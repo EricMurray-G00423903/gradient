@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "esModuleInterop": true,
-    "moduleResolution": "nodenext",
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "outDir": "lib",
-    "sourceMap": true,
+    "target": "es6",
+    "lib": ["esnext"],
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
-    "target": "es2017"
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "compileOnSave": true,
   "include": [
-    "src"
-  ]
+    "src/**/*",
+    ".eslintrc.js"
+  ],
+  "exclude": ["node_modules"]
 }
