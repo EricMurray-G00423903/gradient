@@ -13,10 +13,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set Up Node.js (Version 21)
+      - name: Set Up Node.js (Version 22)
         uses: actions/setup-node@v3
         with:
-          node-version: 21
+          node-version: 22
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
