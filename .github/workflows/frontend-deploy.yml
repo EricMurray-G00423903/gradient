@@ -21,7 +21,7 @@ jobs:
       - name: Install Dependencies & Build Frontend
         run: |
           cd frontend
-          npm install
+          npm install --legacy-peer-deps
           npm run build
 
       - name: Deploy via FTP to Hostinger
