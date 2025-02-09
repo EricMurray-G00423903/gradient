@@ -25,7 +25,7 @@ jobs:
           npm run build
 
       - name: Deploy via FTP to Hostinger
-        uses: SamKirkland/FTP-Deploy-Action@v1
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USER }}
@@ -33,3 +33,5 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           local-dir: ./frontend/build/
           server-dir: /public_html/
+          protocol: ftps
+          log-level: verbose
