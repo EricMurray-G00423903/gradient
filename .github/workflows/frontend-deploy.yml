@@ -13,19 +13,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set Up Node.js (Version 21)
+      - name: Set Up Node.js (Version 22)
         uses: actions/setup-node@v3
         with:
-          node-version: 21
+          node-version: 22
 
       - name: Install Dependencies & Build Frontend
         run: |
           cd frontend
-          npm install
+          npm install --legacy-peer-deps
           npm run build
 
       - name: Deploy via FTP to Hostinger
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USER }}
@@ -33,3 +33,5 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           local-dir: ./frontend/build/
           server-dir: /public_html/
+          protocol: ftps
+          log-level: verbose
