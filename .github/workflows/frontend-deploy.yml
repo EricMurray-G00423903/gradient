@@ -31,7 +31,7 @@ jobs:
           username: ${{ secrets.FTP_USER }}
           password: ${{ secrets.FTP_PASS }}
           port: ${{ secrets.FTP_PORT }}
-          local-dir: ./frontend/build/
+          local-dir: ./frontend/dist/
           server-dir: /public_html/
           protocol: ftps
           log-level: verbose
