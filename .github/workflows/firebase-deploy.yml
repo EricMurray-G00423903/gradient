@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Dependencies (Including ESLint)
+      - name: Install Dependencies
         working-directory: backend/functions
         run: npm install
 
