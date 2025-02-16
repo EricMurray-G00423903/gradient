@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -7,16 +8,15 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBa6NAMB-4yJYhDbmUJ2Wd78Xp-6e6xrn0",
-  authDomain: "gradient-3b33e.firebaseapp.com",
-  projectId: "gradient-3b33e",
-  storageBucket: "gradient-3b33e.firebasestorage.app",
-  messagingSenderId: "984729444793",
-  appId: "1:984729444793:web:7e8cf0a88f9af1e37cd668",
-  measurementId: "G-CWBE4Z7HJS"
-};
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
