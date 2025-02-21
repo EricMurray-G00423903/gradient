@@ -1,54 +1,22 @@
-import React from 'react';
-import { Button } from '@mui/material';
-
-declare global {
-  interface Window {
-    deferredPrompt: any;
-  }
-}
+import React from "react";
+import { Button } from "@mui/material";
 
 const InstallPWA: React.FC = () => {
+  const handleInstallClick = () => {
+    alert(
+      "📲 How to Install Gradient:\n\n" +
+      "🔹 Chrome (Android & Desktop):\n   - Tap the three dots (⋮) in the top-right\n   - Select 'Install App'\n\n" +
+      "🔹 Safari (iPhone & iPad):\n   - Tap the Share button (⬆️)\n   - Select 'Add to Home Screen'\n\n" +
+      "🔹 Firefox & Other Browsers:\n   - Open the browser menu\n   - Look for 'Add to Home Screen' or 'Install' option\n\n" +
+      "✨ Enjoy your PWA experience!"
+    );
+  };
 
-    // State to show the install button
-    const [showButton, setShowButton] = React.useState(true);
-
-    React.useEffect(() => {
-        window.addEventListener('beforeinstallprompt', (e) => {
-          e.preventDefault();
-          console.log('beforeinstallprompt fired');
-          // Store the event for later use
-          window.deferredPrompt = e;
-          // Show install button
-          setShowButton(true);
-        });
-      }, []);
-    
-      const handleInstallClick = async () => {
-        console.log('handleInstallClick fired');
-        const promptEvent = window.deferredPrompt;
-        if (!promptEvent) return;
-    
-        // Show the prompt
-        promptEvent.prompt();
-    
-        const result = await promptEvent.userChoice;
-        console.log(result);
-        if (result.outcome === 'accepted') {
-          console.log('User accepted the A2HS prompt');
-        } else {
-          console.log('User dismissed the A2HS prompt');
-        }
-    
-        // We no longer need the prompt
-        window.deferredPrompt = null;
-        setShowButton(false);
-      };
-    
-      return showButton ? (
-        <Button variant="contained" color="primary" onClick={handleInstallClick}>
-          Install App
-        </Button>
-      ) : null;
+  return (
+    <Button variant="contained" color="primary" onClick={handleInstallClick}>
+      Install
+    </Button>
+  );
 };
 
 export default InstallPWA;
