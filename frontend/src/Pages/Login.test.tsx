@@ -24,4 +24,3 @@ describe("Login Page", () => {
     expect(loginButton).toBeInTheDocument();
   });
 });
-
