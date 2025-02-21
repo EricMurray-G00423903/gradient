@@ -62,8 +62,5 @@
     "vite": "^6.1.0",
     "vite-plugin-pwa": "^0.21.1",
     "web-vitals": "^4.2.4"
-  },
-  {
-  "type": "module"
   }
 }
