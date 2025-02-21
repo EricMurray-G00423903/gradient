@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Login from "./login";
+import Login from "./Login";
 
 describe("Login Page", () => {
   test("renders Login heading", () => {
@@ -24,3 +24,4 @@ describe("Login Page", () => {
     expect(loginButton).toBeInTheDocument();
   });
 });
+

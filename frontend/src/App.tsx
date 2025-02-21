@@ -7,7 +7,7 @@ import StudyPlanner from './Pages/StudyPlanner';
 import Projects from './Pages/Projects';
 import Settings from './Pages/Settings';
 import BottomNav from './Components/BottomNav';
-import Login from './Pages/login';
+import Login from './Pages/Login';
 
 // Creating a dark theme with purple highlights
 const theme = createTheme({
