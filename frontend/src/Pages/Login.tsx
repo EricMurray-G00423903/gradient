@@ -55,4 +55,3 @@ const Login = () => {
 };
 
 export default Login; //Export Login component for use in other parts of the app
-
