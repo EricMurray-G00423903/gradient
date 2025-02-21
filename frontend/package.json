@@ -18,7 +18,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "jest"
+    "test": "jest",
+    "create-page": "node ./scripts/createFiles.js page",
+    "create-component": "node ./scripts/createFiles.js component"
   },
   "eslintConfig": {
     "extends": [
