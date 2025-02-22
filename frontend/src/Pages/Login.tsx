@@ -1,57 +1,76 @@
-import { useState } from "react"; 
-import { auth } from "../firebase"; 
-import { signInWithEmailAndPassword } from "firebase/auth"; 
+import { useState } from "react";
+import { auth } from "../firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { Container, Typography, TextField, Button, Box, Paper } from "@mui/material";
 
-//Login component for user authentication
-const Login = () => {
-  //State variables for email, password, and error messages
-  const [email, setEmail] = useState(""); 
+export default function Login() {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  //Function to handle form submission and user authentication
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); //Prevents default form reload behavior
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
     try {
-      //Attempt to sign in the user with Firebase authentication
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful!"); //Log success message - @TODO: Redirect to dashboard
-    } catch (err) {
-      setError("Invalid credentials"); // Display error message on failed login
+      if (isSignUp) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message);
     }
-  };
+  }
 
   return (
-    <div>
-      <h2>Login</h2>
-      {/* Display error message if login fails */}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      
-      {/* Login form */}
-      <form onSubmit={handleLogin}>
-        {/* Email input field */}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)} // Update state when user types
-          required
-        />
+    <Container maxWidth="sm" sx={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100vh", justifyContent: "center" }}>
+      <Paper elevation={6} sx={{ padding: 4, bgcolor: "#121212", color: "#fff", textAlign: "center", borderRadius: 3 }}>
+        <Typography variant="h4" sx={{ color: "#b39ddb", fontWeight: "bold", mb: 2 }}>
+          {isSignUp ? "Sign Up" : "Log In"}
+        </Typography>
 
-        {/* Password input field */}
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)} // Update state when user types
-          required
-        />
+        {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
 
-        {/* Submit button to trigger login */}
-        <button type="submit">Login</button>
-      </form>
-    </div>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField
+            label="Email"
+            variant="outlined"
+            fullWidth
+            InputProps={{ style: { color: "#fff" } }}
+            InputLabelProps={{ style: { color: "#b39ddb" } }}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            InputProps={{ style: { color: "#fff" } }}
+            InputLabelProps={{ style: { color: "#b39ddb" } }}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <Button type="submit" variant="contained" fullWidth sx={{ bgcolor: "#b39ddb", color: "#121212", fontWeight: "bold" }}>
+            {isSignUp ? "Sign Up" : "Log In"}
+          </Button>
+        </Box>
+
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          {isSignUp ? "Already have an account?" : "Don't have an account?"}
+          <Button sx={{ color: "#b39ddb", textTransform: "none", ml: 1 }} onClick={() => setIsSignUp(!isSignUp)}>
+            {isSignUp ? "Log In" : "Sign Up"}
+          </Button>
+        </Typography>
+      </Paper>
+    </Container>
   );
-};
-
-export default Login; //Export Login component for use in other parts of the app
+}
