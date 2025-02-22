@@ -1,67 +1,76 @@
 import { useState } from "react";
-import { auth } from "../firebase"; // Firebase authentication
+import { auth } from "../firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { Container, Typography, TextField, Button, Box, Paper } from "@mui/material";
 
 export default function Login() {
-  const [isSignUp, setIsSignUp] = useState(false); // Toggle between Log In & Sign Up
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Handle form submission for Login or Sign-Up
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null); // Reset error state
+    setError(null);
 
     try {
       if (isSignUp) {
-        // Sign Up logic
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
-        // Log In logic
         await signInWithEmailAndPassword(auth, email, password);
       }
-      navigate("/"); // Redirect to Home page after success
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
     }
   }
 
   return (
-    <div className="flex flex-col items-center mt-10">
-      <h2 className="text-2xl font-bold">{isSignUp ? "Sign Up" : "Log In"}</h2>
-      {error && <p className="text-red-500">{error}</p>}
-
-      <form onSubmit={handleSubmit} className="flex flex-col space-y-4 mt-4">
-        <input 
-          type="email" 
-          placeholder="Email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-          className="border p-2" 
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          required 
-          className="border p-2" 
-        />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+    <Container maxWidth="sm" sx={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100vh", justifyContent: "center" }}>
+      <Paper elevation={6} sx={{ padding: 4, bgcolor: "#121212", color: "#fff", textAlign: "center", borderRadius: 3 }}>
+        <Typography variant="h4" sx={{ color: "#b39ddb", fontWeight: "bold", mb: 2 }}>
           {isSignUp ? "Sign Up" : "Log In"}
-        </button>
-      </form>
+        </Typography>
 
-      <p className="mt-4">
-        {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-        <button className="text-blue-500 underline" onClick={() => setIsSignUp(!isSignUp)}>
-          {isSignUp ? "Log In" : "Sign Up"}
-        </button>
-      </p>
-    </div>
+        {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField
+            label="Email"
+            variant="outlined"
+            fullWidth
+            InputProps={{ style: { color: "#fff" } }}
+            InputLabelProps={{ style: { color: "#b39ddb" } }}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            InputProps={{ style: { color: "#fff" } }}
+            InputLabelProps={{ style: { color: "#b39ddb" } }}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <Button type="submit" variant="contained" fullWidth sx={{ bgcolor: "#b39ddb", color: "#121212", fontWeight: "bold" }}>
+            {isSignUp ? "Sign Up" : "Log In"}
+          </Button>
+        </Box>
+
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          {isSignUp ? "Already have an account?" : "Don't have an account?"}
+          <Button sx={{ color: "#b39ddb", textTransform: "none", ml: 1 }} onClick={() => setIsSignUp(!isSignUp)}>
+            {isSignUp ? "Log In" : "Sign Up"}
+          </Button>
+        </Typography>
+      </Paper>
+    </Container>
   );
 }
