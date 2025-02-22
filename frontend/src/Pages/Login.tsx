@@ -1,57 +1,67 @@
-import { useState } from "react"; 
-import { auth } from "../firebase"; 
-import { signInWithEmailAndPassword } from "firebase/auth"; 
+import { useState } from "react";
+import { auth } from "../firebase"; // Firebase authentication
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
-//Login component for user authentication
-const Login = () => {
-  //State variables for email, password, and error messages
-  const [email, setEmail] = useState(""); 
+export default function Login() {
+  const [isSignUp, setIsSignUp] = useState(false); // Toggle between Log In & Sign Up
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  //Function to handle form submission and user authentication
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); //Prevents default form reload behavior
+  // Handle form submission for Login or Sign-Up
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null); // Reset error state
+
     try {
-      //Attempt to sign in the user with Firebase authentication
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful!"); //Log success message - @TODO: Redirect to dashboard
-    } catch (err) {
-      setError("Invalid credentials"); // Display error message on failed login
+      if (isSignUp) {
+        // Sign Up logic
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        // Log In logic
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      navigate("/"); // Redirect to Home page after success
+    } catch (err: any) {
+      setError(err.message);
     }
-  };
+  }
 
   return (
-    <div>
-      <h2>Login</h2>
-      {/* Display error message if login fails */}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      
-      {/* Login form */}
-      <form onSubmit={handleLogin}>
-        {/* Email input field */}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)} // Update state when user types
-          required
-        />
+    <div className="flex flex-col items-center mt-10">
+      <h2 className="text-2xl font-bold">{isSignUp ? "Sign Up" : "Log In"}</h2>
+      {error && <p className="text-red-500">{error}</p>}
 
-        {/* Password input field */}
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)} // Update state when user types
-          required
+      <form onSubmit={handleSubmit} className="flex flex-col space-y-4 mt-4">
+        <input 
+          type="email" 
+          placeholder="Email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          required 
+          className="border p-2" 
         />
-
-        {/* Submit button to trigger login */}
-        <button type="submit">Login</button>
+        <input 
+          type="password" 
+          placeholder="Password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          required 
+          className="border p-2" 
+        />
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+          {isSignUp ? "Sign Up" : "Log In"}
+        </button>
       </form>
+
+      <p className="mt-4">
+        {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+        <button className="text-blue-500 underline" onClick={() => setIsSignUp(!isSignUp)}>
+          {isSignUp ? "Log In" : "Sign Up"}
+        </button>
+      </p>
     </div>
   );
-};
-
-export default Login; //Export Login component for use in other parts of the app
+}

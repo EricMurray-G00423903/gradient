@@ -35,7 +35,7 @@ function App() {
           {/* Routes setup */}
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} /> {/* Now used for both Login & Sign-Up */}
             <Route path="/modules" element={<Modules />} />
             <Route path="/study-planner" element={<StudyPlanner />} />
             <Route path="/projects" element={<Projects />} />
