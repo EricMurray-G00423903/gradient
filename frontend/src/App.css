@@ -36,3 +36,45 @@
     transform: rotate(360deg);
   }
 }
+
+.profile-container {
+  padding: 20px;
+  text-align: center;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-info h3 {
+  margin-bottom: 5px;
+}
+
+.modules-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.modules-section li {
+  padding: 5px;
+  background: #f0f0f0;
+  margin: 5px 0;
+  border-radius: 5px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
