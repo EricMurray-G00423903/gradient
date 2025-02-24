@@ -1,38 +1,34 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, db } from "../firebase";
+import { auth } from "../firebase";
 import { User, onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { getUserCourseAndModules } from "../Utils/FirestoreService"; 
 
-// Define the structure of authentication context
+// Define authentication context type
 interface AuthContextType {
-  user: User | null; // Firebase Auth user object
-  userData: any | null; // Additional user details from Firestore
-  logout: () => Promise<void>; // Function to handle user logout
+  user: User | null;
+  userData: any | null;
+  logout: () => Promise<void>;
 }
 
 // Create authentication context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-// Authentication Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<any | null>(null);
 
   useEffect(() => {
-    // Firebase listener for authentication state changes
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-
       if (currentUser) {
-        // Fetch user profile data from Firestore
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        setUserData(userDoc.exists() ? userDoc.data() : null);
+        const userProfile = await getUserCourseAndModules(currentUser.uid); // ✅ Fetch Firestore Data
+        setUserData(userProfile);
       } else {
         setUserData(null);
       }
     });
 
-    return () => unsubscribe(); // Cleanup the listener on unmount
+    return () => unsubscribe();
   }, []);
 
   const logout = async () => {

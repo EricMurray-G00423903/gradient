@@ -1,29 +1,43 @@
 import { useState } from "react";
-import { auth } from "../firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { Container, Typography, TextField, Button, Box, Paper } from "@mui/material";
+import { loginUser, signupUser } from "../Utils/AuthFunctions"; // Use refactored functions
+import { Container, Typography, TextField, Button, Box, Paper, CircularProgress } from "@mui/material";
 
 export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false); // Added loading state
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        await signupUser(email, password);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        await loginUser(email, password);
       }
-      navigate("/");
+      navigate("/profile"); // Redirect to Profile after login
     } catch (err: any) {
-      setError(err.message);
+      // Improve error messages for better UX
+      if (err.code === "auth/invalid-email") {
+        setError("Invalid email format.");
+      } else if (err.code === "auth/wrong-password") {
+        setError("Incorrect password.");
+      } else if (err.code === "auth/user-not-found") {
+        setError("No account found with this email.");
+      } else if (err.code === "auth/email-already-in-use") {
+        setError("This email is already registered.");
+      } else {
+        setError("Authentication failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -59,8 +73,8 @@ export default function Login() {
             required
           />
 
-          <Button type="submit" variant="contained" fullWidth sx={{ bgcolor: "#b39ddb", color: "#121212", fontWeight: "bold" }}>
-            {isSignUp ? "Sign Up" : "Log In"}
+          <Button type="submit" variant="contained" fullWidth sx={{ bgcolor: "#b39ddb", color: "#121212", fontWeight: "bold" }} disabled={loading}>
+            {loading ? <CircularProgress size={24} sx={{ color: "#121212" }} /> : isSignUp ? "Sign Up" : "Log In"}
           </Button>
         </Box>
 

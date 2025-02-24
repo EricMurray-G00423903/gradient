@@ -1,19 +1,50 @@
-import { auth, db } from "../firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { auth } from "../firebase";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  setPersistence, 
+  browserLocalPersistence, 
+  signOut 
+} from "firebase/auth";
 
-// Function to register a new user
-export const signupUser = async (email: string, password: string, fullName: string, course: string) => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
+// ✅ Ensure persistent login
+setPersistence(auth, browserLocalPersistence);
 
-  // Store additional user data in Firestore
-  await setDoc(doc(db, "users", user.uid), { uid: user.uid, email, fullName, course });
-
-  return user;
+/**
+ * Logs in an existing user with email and password.
+ */
+export const loginUser = async (email: string, password: string) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return userCredential.user;
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error; // Pass the error back to the UI
+  }
 };
 
-// Function to authenticate an existing user
-export const loginUser = async (email: string, password: string) => {
-  return signInWithEmailAndPassword(auth, email, password);
+/**
+ * Creates a new user account with email and password.
+ */
+export const signupUser = async (email: string, password: string) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    return userCredential.user;
+  } catch (error) {
+    console.error("Signup error:", error);
+    throw error; // Pass the error back to the UI
+  }
+};
+
+/**
+ * Logs out the currently signed-in user.
+ */
+export const logoutUser = async () => {
+  try {
+    await signOut(auth);
+    console.log("User logged out successfully.");
+  } catch (error) {
+    console.error("Logout error:", error);
+    throw error;
+  }
 };
