@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import Home from './Pages/Home';
 import Modules from './Pages/Modules';
+import ModuleDetails from './Pages/ModuleDetails';
 import StudyPlanner from './Pages/StudyPlanner';
 import Projects from './Pages/Projects';
 import Settings from './Pages/Settings';
@@ -38,6 +39,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} /> {/* Now used for both Login & Sign-Up */}
             <Route path="/modules" element={<Modules />} />
+            <Route path="/module-details" element={<ModuleDetails />} />
             <Route path="/study-planner" element={<StudyPlanner />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/settings" element={<Settings />} />

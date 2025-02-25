@@ -1,36 +1,35 @@
 import { useState, useEffect } from "react";
-import { 
-  Container, Typography, TextField, Button, Box, List, ListItem, 
-  ListItemText, CircularProgress, Card, CardContent 
-} from "@mui/material";
+import { Container, Typography, TextField, Button, Box, List } from "@mui/material";
 import { getUserCourseAndModules, setUserCourse, addModule } from "../Utils/FirestoreService";
+import ModuleCard from "../Components/ModuleCard";
 
 const HARDCODED_UID = "LDkrfJqOSvV59ddYaLTUdI9lgWB2"; // Replace with actual Firebase UID
 
 const Modules = () => {
   const [userName, setUserName] = useState<string | null>(null);
-  const [course, setCourse] = useState<string>(""); // Store course name
-  const [isCourseSet, setIsCourseSet] = useState<boolean>(false); // Track if course is set
-  const [modules, setModules] = useState<{ id: string; name: string }[]>([]); // Store modules
-  const [newModule, setNewModule] = useState<string>(""); // Input for new module
+  const [course, setCourse] = useState<string>("");
+  const [isCourseSet, setIsCourseSet] = useState<boolean>(false);
+  const [modules, setModules] = useState<{ id: string; name: string; proficiency: number; hasBeenTested: boolean }[]>([]);
+  const [newModule, setNewModule] = useState<string>("");
 
-  // Fetch user's name, course & modules when the component mounts
+  // Fetch user's course & modules when the component mounts
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const { name, course, modules } = await getUserCourseAndModules(HARDCODED_UID);
-
-        if (name) {
-          setUserName(name); // ✅ Store name in state
-        }
-
+        
+        if (name) setUserName(name);
         if (course) {
           setCourse(course);
           setIsCourseSet(true);
         }
-
         if (modules.length > 0) {
-          setModules(modules);
+          setModules(modules.map((mod) => ({
+            id: mod.id,
+            name: mod.name,
+            proficiency: mod.proficiency,
+            hasBeenTested: mod.hasBeenTested ?? false, // ✅ Ensures it always exists
+          })));
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -42,7 +41,6 @@ const Modules = () => {
 
   const handleSetCourse = async () => {
     if (!course.trim()) return;
-
     try {
       await setUserCourse(HARDCODED_UID, course);
       setIsCourseSet(true);
@@ -53,10 +51,9 @@ const Modules = () => {
 
   const handleAddModule = async () => {
     if (!newModule.trim()) return;
-
     try {
       await addModule(HARDCODED_UID, newModule);
-      setModules((prevModules) => [...prevModules, { id: Date.now().toString(), name: newModule }]); // Temporary ID for UI update
+      setModules((prevModules) => [...prevModules, { id: Date.now().toString(), name: newModule, proficiency: 0, hasBeenTested: false }]);
       setNewModule("");
     } catch (error) {
       console.error("Failed to add module:", error);
@@ -71,9 +68,7 @@ const Modules = () => {
 
       {!isCourseSet ? (
         <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" color="secondary">
-            Enter Your Course
-          </Typography>
+          <Typography variant="h6" color="secondary">Enter Your Course</Typography>
           <TextField
             fullWidth
             variant="outlined"
@@ -89,22 +84,18 @@ const Modules = () => {
         </Box>
       ) : (
         <Box sx={{ mt: 3 }}>
-          <Typography variant="h5" color="primary">
-            {course}
-          </Typography>
+          <Typography variant="h5" color="primary">{course}</Typography>
+          <Typography variant="h6" sx={{ mt: 2 }}>Your Modules</Typography>
 
-          <Typography variant="h6" sx={{ mt: 2 }}>
-            Your Modules
-          </Typography>
-          {modules.length === 0 && <Typography color="textSecondary">No modules added yet.</Typography>}
-
-          <List sx={{ mt: 2 }}>
-            {modules.map((mod) => (
-              <ListItem key={mod.id} sx={{ bgcolor: "background.paper", borderRadius: 1, mb: 1 }}>
-                <ListItemText primary={mod.name} />
-              </ListItem>
-            ))}
-          </List>
+          {modules.length === 0 ? (
+            <Typography color="textSecondary">No modules added yet.</Typography>
+          ) : (
+            <List sx={{ mt: 2 }}>
+              {modules.map((module) => (
+                <ModuleCard key={module.id} id={module.id} name={module.name} proficiency={module.proficiency} hasBeenTested={module.hasBeenTested} />
+              ))}
+            </List>
+          )}
 
           <Box sx={{ mt: 2 }}>
             <TextField
@@ -115,11 +106,8 @@ const Modules = () => {
               onChange={(e) => setNewModule(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddModule()}
             />
-
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 2 }}>
-              <Button variant="contained" color="secondary" onClick={handleAddModule}>
-                Add Module
-              </Button>
+              <Button variant="contained" color="secondary" onClick={handleAddModule}>Add Module</Button>
             </Box>
           </Box>
         </Box>
