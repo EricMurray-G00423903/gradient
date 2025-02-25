@@ -3,11 +3,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import Home from './Pages/Home';
 import Modules from './Pages/Modules';
+import ModuleDetails from './Pages/ModuleDetails';
 import StudyPlanner from './Pages/StudyPlanner';
 import Projects from './Pages/Projects';
 import Settings from './Pages/Settings';
 import BottomNav from './Components/BottomNav';
 import Login from './Pages/Login';
+import Profile from './Pages/Profile';
 
 // Creating a dark theme with purple highlights
 const theme = createTheme({
@@ -35,11 +37,13 @@ function App() {
           {/* Routes setup */}
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} /> {/* Now used for both Login & Sign-Up */}
             <Route path="/modules" element={<Modules />} />
+            <Route path="/module-details" element={<ModuleDetails />} />
             <Route path="/study-planner" element={<StudyPlanner />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
           {/* Bottom navigation */}
           <BottomNav />
