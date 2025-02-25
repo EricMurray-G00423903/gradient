@@ -9,7 +9,7 @@ const Modules = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [course, setCourse] = useState<string>("");
   const [isCourseSet, setIsCourseSet] = useState<boolean>(false);
-  const [modules, setModules] = useState<{ id: string; name: string; proficiency: number; hasTakenQuiz: boolean }[]>([]);
+  const [modules, setModules] = useState<{ id: string; name: string; proficiency: number; hasBeenTested: boolean }[]>([]);
   const [newModule, setNewModule] = useState<string>("");
 
   // Fetch user's course & modules when the component mounts
@@ -17,6 +17,7 @@ const Modules = () => {
     const fetchUserData = async () => {
       try {
         const { name, course, modules } = await getUserCourseAndModules(HARDCODED_UID);
+        
         if (name) setUserName(name);
         if (course) {
           setCourse(course);
@@ -27,9 +28,8 @@ const Modules = () => {
             id: mod.id,
             name: mod.name,
             proficiency: mod.proficiency,
-            hasTakenQuiz: mod.hasBeenTested ?? false, // ✅ Ensures it always exists
+            hasBeenTested: mod.hasBeenTested ?? false, // ✅ Ensures it always exists
           })));
-          
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -53,16 +53,11 @@ const Modules = () => {
     if (!newModule.trim()) return;
     try {
       await addModule(HARDCODED_UID, newModule);
-      setModules((prevModules) => [...prevModules, { id: Date.now().toString(), name: newModule, proficiency: 0, hasTakenQuiz: false }]);
+      setModules((prevModules) => [...prevModules, { id: Date.now().toString(), name: newModule, proficiency: 0, hasBeenTested: false }]);
       setNewModule("");
     } catch (error) {
       console.error("Failed to add module:", error);
     }
-  };
-
-  const handleTakeQuiz = (moduleId: string) => {
-    console.log(`Redirecting to quiz for module: ${moduleId}`);
-    window.location.href = `/quiz?moduleId=${moduleId}`;
   };
 
   return (
@@ -97,7 +92,7 @@ const Modules = () => {
           ) : (
             <List sx={{ mt: 2 }}>
               {modules.map((module) => (
-                <ModuleCard key={module.id} {...module} onTakeQuiz={handleTakeQuiz} />
+                <ModuleCard key={module.id} id={module.id} name={module.name} proficiency={module.proficiency} hasBeenTested={module.hasBeenTested} />
               ))}
             </List>
           )}

@@ -7,6 +7,7 @@ const auth = getAuth();
 interface Module {
     id: string;
     name: string;
+    description?: string;
     proficiency?: number;
     lastTested?: Date | null;
     hasBeenTested?: boolean;
@@ -50,7 +51,8 @@ export const addModule = async (uid: string, moduleName: string) => {
   try {
     const moduleRef = await addDoc(collection(db, "users", uid, "modules"), {
       name: moduleName,
-      proficiency: 0, // Default
+      description: null,
+      proficiency: 0,
       lastTested: null,
       hasBeenTested: false,
     });
@@ -118,6 +120,7 @@ export const getUserProfile = async (uid: string) => {
         return {
           id: doc.id,
           name: data.name || "Untitled Module", // Ensure name exists
+          description: data.description || "No description available for this module.",
           proficiency: data.proficiency || 0,
           lastTested: data.lastTested || null,
           hasBeenTested: data.hasBeenTested || false,
@@ -131,4 +134,27 @@ export const getUserProfile = async (uid: string) => {
     }
   };
 
+  export const getModuleById = async (uid: string, moduleId: string) => {
+    try {
+      const moduleDoc = await getDoc(doc(db, "users", uid, "modules", moduleId));
+      if (moduleDoc.exists()) {
+        return moduleDoc.data();
+      } else {
+        console.error("Module not found.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching module:", error);
+      return null;
+    }
+  };
+  
+  export const updateModuleDescription = async (uid: string, moduleId: string, updatedData: any) => {
+    try {
+      await updateDoc(doc(db, "users", uid, "modules", moduleId), updatedData);
+      console.log("Module details updated successfully.");
+    } catch (error) {
+      console.error("Error updating module details:", error);
+    }
+  };
   

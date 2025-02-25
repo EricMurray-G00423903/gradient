@@ -3,27 +3,25 @@ import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 interface ModuleProps {
   id: string;
   name: string;
+  description?: string;
   proficiency: number;
-  hasBeenTested?: boolean; // ✅ Make it optional in case of missing data
-  onTakeQuiz: (moduleId: string) => void;
+  hasBeenTested?: boolean;
 }
 
-const ModuleCard: React.FC<ModuleProps> = ({ id, name, proficiency, hasBeenTested = false, onTakeQuiz }) => {
+const ModuleCard: React.FC<ModuleProps> = ({ id, name, description, proficiency, hasBeenTested = false }) => {
   return (
     <Card sx={{ mb: 2, p: 2, width: "100%" }}>
       <CardContent>
         <Typography variant="h6">{name}</Typography>
-        <Typography variant="body2" color="textSecondary">
+
+        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
           Proficiency: {proficiency}%
         </Typography>
+
         <Box mt={2}>
-          {hasBeenTested ? (
-            <Typography color="success.main">✔️ Quiz Completed</Typography>
-          ) : (
-            <Button variant="contained" color="primary" onClick={() => onTakeQuiz(id)}>
-              Take Proficiency Quiz
-            </Button>
-          )}
+          <Button variant="contained" color="primary" onClick={() => window.location.href = `/module-details?id=${id}`}>
+            Go to Module
+          </Button>
         </Box>
       </CardContent>
     </Card>
