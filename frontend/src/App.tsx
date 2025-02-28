@@ -12,6 +12,7 @@ import Settings from "./Pages/Settings";
 import BottomNav from "./Components/BottomNav";
 import Profile from "./Pages/Profile";
 import Quiz from "./Pages/Quiz";
+import "./App.css";  // ✅ Import global styles
 
 // Creating a dark theme with purple highlights
 const theme = createTheme({

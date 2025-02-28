@@ -113,3 +113,32 @@ button:hover {
   font-weight: bold;
 }
 
+.custom-textfield {
+  width: 100%;
+  background: white;
+  border-radius: 5px;
+}
+
+.custom-textfield .MuiInputBase-input {
+  font-size: 1rem;
+  padding: 12px; /* Adjusted padding to reduce height */
+}
+
+.custom-textfield .MuiInputLabel-root {
+  color: #555;
+  font-size: 0.9rem; /* Slightly smaller to save space */
+  transform: translate(14px, 12px) scale(1); /* Adjust label positioning */
+}
+
+.custom-textfield .MuiOutlinedInput-root fieldset {
+  border-color: #ccc; /* Light border */
+}
+
+.custom-textfield .MuiOutlinedInput-root:hover fieldset {
+  border-color: #a777e3; /* Purple hover effect */
+}
+
+.custom-textfield .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: #6e8efb; /* Blue focus effect */
+}
+
