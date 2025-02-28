@@ -14,7 +14,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-firebase-hooks": "^5.1.1",
-    "react-router-dom": "^7.1.5"
+    "react-router-dom": "^7.1.5",
+    "swiper": "^11.2.4"
   },
   "scripts": {
     "dev": "vite",

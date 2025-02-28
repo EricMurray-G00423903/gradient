@@ -78,3 +78,38 @@ button:hover {
   background-color: #0056b3;
 }
 
+
+/* 🛠 Custom Swiper Arrow Fix */
+.custom-swiper .swiper-button-prev,
+.custom-swiper .swiper-button-next {
+  color: white; /* Make them blend better */
+  font-size: 24px; /* Reduce size */
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2); /* Light transparent background */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.custom-swiper .swiper-button-prev {
+  left: -10px; /* Adjust closer to content */
+}
+
+.custom-swiper .swiper-button-next {
+  right: -10px; /* Adjust closer to content */
+}
+
+.custom-swiper .swiper-button-prev:hover,
+.custom-swiper .swiper-button-next:hover {
+  background: rgba(255, 255, 255, 0.4); /* More visible on hover */
+}
+
+.custom-swiper .swiper-button-prev::after,
+.custom-swiper .swiper-button-next::after {
+  font-size: 18px; /* Reduce arrow icon size */
+  font-weight: bold;
+}
+
