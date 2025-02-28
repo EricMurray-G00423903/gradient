@@ -14,6 +14,13 @@ const Landing = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    //Prevent sign-up if the password is too short
+    if (screen === "signup" && form.password.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
     try {
       if (screen === "signup") {
         const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
@@ -26,18 +33,20 @@ const Landing = () => {
       } else {
         await signInWithEmailAndPassword(auth, form.email, form.password);
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Auth error:", error.message);
-      } else {
-        console.error("Auth error:", error);
-      }
+    } catch (error: any) {
+      console.error("Auth error:", error.message);
+      alert(error.message); // Show the error message to the user
     }
   };
 
   const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error.message);
+      alert(error.message);
+    }
   };
 
   return (
@@ -54,7 +63,7 @@ const Landing = () => {
         padding: "1.5rem",
       }}
     >
-      {/* 🚀 GET STARTED SCREEN */}
+      {/* GET STARTED SCREEN */}
       {screen === "getStarted" && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ width: "100%", maxWidth: "400px" }}>
           <Typography variant="h3" fontWeight="bold">Welcome to Gradient</Typography>
@@ -63,7 +72,7 @@ const Landing = () => {
         </motion.div>
       )}
 
-      {/* 🔑 LOGIN SCREEN */}
+      {/* LOGIN SCREEN */}
       {screen === "login" && (
         <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} style={{ width: "100%", maxWidth: "400px" }}>
           <Typography variant="h4" fontWeight="bold">Log In</Typography>
@@ -77,7 +86,7 @@ const Landing = () => {
         </motion.div>
       )}
 
-      {/* 📝 SIGNUP SCREEN */}
+      {/* SIGNUP SCREEN */}
       {screen === "signup" && (
         <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} style={{ width: "100%", maxWidth: "400px" }}>
           <Typography variant="h4" fontWeight="bold">Sign Up</Typography>
@@ -85,9 +94,20 @@ const Landing = () => {
             <TextField label="Full Name" name="name" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
             <TextField label="Course Name" name="course" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
             <TextField label="Email" name="email" type="email" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
-            <TextField label="Password" name="password" type="password" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
+            <TextField 
+              label="Password" 
+              name="password" 
+              type="password" 
+              fullWidth 
+              onChange={handleChange} 
+              required 
+              sx={{ mb: 2 }} 
+              helperText="Password must be at least 6 characters" // 🔹 Display rule to user
+            />
             <Button type="submit" variant="contained" color="primary" fullWidth sx={{ py: 1.5 }}>Sign Up</Button>
           </form>
+          <Button variant="outlined" startIcon={<GoogleIcon />} fullWidth sx={{ mt: 2, py: 1.5 }} onClick={handleGoogleSignIn}>Continue with Google</Button>
+          <Typography variant="body2" sx={{ mt: 2 }}>Already have an account? <Button onClick={() => setScreen("login")}>Log In</Button></Typography>
         </motion.div>
       )}
     </Box>
