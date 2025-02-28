@@ -13,41 +13,76 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Define the Firebase function for OpenAI request
-export const askAI = onRequest(async (req, res) => {
+/**
+ * Generate Quiz Questions from OpenAI
+ */
+export const generateQuizQuestions = onRequest(async (req, res) => {
   try {
-    // Log the incoming request headers and body
-    console.log("Received request headers:", req.headers);
-    console.log("Received request body:", JSON.stringify(req.body, null, 2));
+    const { moduleName, proficiencyScore, moduleDescription } = req.body;
 
-    // Validate request body and check if prompt is provided
-    if (!req.body || !req.body.prompt) {
-      console.error("Error: Request body is missing or malformed");
-      res.status(400).json({ error: "Missing prompt in request" });
-      return;
-    }
+    // Convert Proficiency Score (0-100) into Readable Levels
+    const getProficiencyLevel = (score: number): string => {
+      if (score < 25) return "Beginner";
+      if (score < 50) return "Intermediate";
+      if (score < 75) return "Advanced";
+      if (score < 90) return "Very Advanced";
+      return "Expert";
+    };
 
-    const prompt = req.body.prompt; // Extract the prompt from the request
-    console.log("Sending to OpenAI:", prompt);
+    const proficiencyLevel = getProficiencyLevel(proficiencyScore);
 
-    // Call OpenAI API to get the completion response
+    // Define OpenAI Prompt
+    const prompt = `
+      You are a quiz generation AI. Create 10 multiple-choice questions for the module "${moduleName}".
+
+      User's Proficiency Level: ${proficiencyLevel}
+      Module Description: ${moduleDescription}
+
+      Response Format (JSON STRICT):
+      {
+        "questions": [
+          {
+            "question": "Example Question?",
+            "answers": {
+              "A": "Example Answer A",
+              "B": "Example Answer B",
+              "C": "Example Answer C",
+              "D": "Example Answer D"
+            },
+            "correctAnswer": "C",
+            "topic": "Example Sub Topic"
+          }
+        ]
+      }
+
+      Rules:
+      - Ensure each question has exactly 4 answer choices (A, B, C, D).
+      - Provide the correct answer as a single letter.
+      - Assign a subtopic.
+      - Adjust difficulty to match ${proficiencyLevel}.
+      - Questions must be relevant to the module.
+    `;
+
+    // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: "gpt-4", // Use GPT-4 model
-      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4o",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.7,
     });
 
-    // Log the AI response for debugging
-    console.log("AI Response:", response);
+    // Extract JSON response safely
+    const quizData = response.choices[0]?.message?.content ?? "{}"; // Default to empty JSON object if null
 
-    // Send the AI response back to the client
-    res.status(200).json({ reply: response.choices[0].message.content });
-  } catch (error) {
-    // Log the error if something goes wrong
-    console.error("OpenAI API Error:", error);
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
+    try {
+      const parsedQuizData = JSON.parse(quizData);
+      res.status(200).json(parsedQuizData);
+    } catch (error) {
+      console.error("Error parsing OpenAI response:", error);
+      res.status(500).json({ error: "Invalid JSON received from OpenAI" });
     }
-    // Respond with a 500 error if AI call fails
-    res.status(500).json({ error: "Failed to communicate with OpenAI" });
+
+  } catch (error) { 
+    console.error("Error generating quiz:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
