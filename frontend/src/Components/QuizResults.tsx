@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Button, List, ListItem, ListItemText } from "@mui/material";
+import { Box, Typography, Button, List, ListItem, ListItemText, Divider } from "@mui/material";
 
 interface QuizResultsProps {
   module: { name: string };
@@ -39,45 +39,54 @@ const QuizResults: React.FC<QuizResultsProps> = ({ module, userAnswers, question
     .map(([topic]) => topic);
 
   return (
-    <Box sx={{ textAlign: "center", mt: 4 }}>
+    <Box sx={{ textAlign: "center", mt: 4, maxWidth: "600px", mx: "auto", p: 3, borderRadius: 3, bgcolor: "#1e1e1e", color: "white", boxShadow: 3 }}>
       <Typography variant="h4" color="primary">
         Quiz Completed!
       </Typography>
       <Typography variant="h6" sx={{ mt: 2 }}>
-        You scored {correctAnswers} out of {totalQuestions}!
+        You scored <strong>{correctAnswers}</strong> out of <strong>{totalQuestions}</strong>!
       </Typography>
 
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="h6">Strong Topics 💪</Typography>
+      <Divider sx={{ my: 3, bgcolor: "#b39ddb" }} />
+
+      <Box>
+        <Typography variant="h6" sx={{ mb: 1, color: "#4caf50" }}>💪 Strong Topics</Typography>
         {strongTopics.length > 0 ? (
           <List>
             {strongTopics.map((topic) => (
-              <ListItem key={topic}>
-                <ListItemText primary={topic} />
+              <ListItem key={topic} sx={{ bgcolor: "#2e7d32", borderRadius: 1, mb: 1 }}>
+                <ListItemText primary={topic} sx={{ color: "white", textAlign: "center" }} />
               </ListItem>
             ))}
           </List>
         ) : (
-          <Typography>No strong topics yet. Keep practicing!</Typography>
-        )}
-
-        <Typography variant="h6" sx={{ mt: 2 }}>Weak Topics ⚠️</Typography>
-        {weakTopics.length > 0 ? (
-          <List>
-            {weakTopics.map((topic) => (
-              <ListItem key={topic}>
-                <ListItemText primary={topic} />
-              </ListItem>
-            ))}
-          </List>
-        ) : (
-          <Typography>No weak topics detected. Great job!</Typography>
+          <Typography sx={{ color: "#ffeb3b" }}>No strong topics yet. Keep practicing!</Typography>
         )}
       </Box>
 
-      <Box sx={{ mt: 3, display: "flex", justifyContent: "center", gap: 2 }}>
-        <Button variant="contained" color="primary" onClick={onFinish}>
-          Return to Modules
+      <Divider sx={{ my: 3, bgcolor: "#b39ddb" }} />
+
+      <Box>
+        <Typography variant="h6" sx={{ mb: 1, color: "#ff9800" }}>⚠️ Weak Topics</Typography>
+        {weakTopics.length > 0 ? (
+          <List>
+            {weakTopics.map((topic) => (
+              <ListItem key={topic} sx={{ bgcolor: "#b71c1c", borderRadius: 1, mb: 1 }}>
+                <ListItemText primary={topic} sx={{ color: "white", textAlign: "center" }} />
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <Typography sx={{ color: "#ffeb3b" }}>No weak topics detected. Great job!</Typography>
+        )}
+      </Box>
+
+      <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
+        <Button variant="contained" color="primary" onClick={onFinish} sx={{ fontWeight: "bold", fontSize: "16px" }}>
+          🔄 Retry Quiz
+        </Button>
+        <Button variant="contained" color="secondary" onClick={() => window.location.href = "/modules"} sx={{ fontWeight: "bold", fontSize: "16px" }}>
+          📚 Back to Modules
         </Button>
       </Box>
     </Box>

@@ -16,9 +16,24 @@ const openai = new OpenAI({
 /**
  * Generate Quiz Questions from OpenAI
  */
-export const generateQuizQuestions = onRequest(async (req, res) => {
+export const generateQuizQuestions = onRequest(async (req, res): Promise<void> => {
   try {
+    // Enable CORS for frontend requests
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
     const { moduleName, proficiencyScore, moduleDescription } = req.body;
+
+    if (!moduleName || proficiencyScore === undefined || !moduleDescription) {
+      res.status(400).json({ error: "Missing required fields" });
+      return;
+    }
 
     // Convert Proficiency Score (0-100) into Readable Levels
     const getProficiencyLevel = (score: number): string => {
@@ -33,34 +48,28 @@ export const generateQuizQuestions = onRequest(async (req, res) => {
 
     // Define OpenAI Prompt
     const prompt = `
-      You are a quiz generation AI. Create 10 multiple-choice questions for the module "${moduleName}".
-
-      User's Proficiency Level: ${proficiencyLevel}
+      You are an AI that generates multiple-choice quizzes for learning.
+      Create 10 multiple-choice questions for the module "${moduleName}".
+      Ensure difficulty level matches a ${proficiencyLevel} learner.
       Module Description: ${moduleDescription}
 
-      Response Format (JSON STRICT):
+      Respond **ONLY** with **raw JSON format** (DO NOT include Markdown formatting, DO NOT wrap with triple backticks).
+
       {
         "questions": [
           {
-            "question": "Example Question?",
+            "question": "What is polymorphism in OOP?",
             "answers": {
-              "A": "Example Answer A",
-              "B": "Example Answer B",
-              "C": "Example Answer C",
-              "D": "Example Answer D"
+              "A": "A design pattern",
+              "B": "A type of variable",
+              "C": "The ability of a function to operate on different data types",
+              "D": "A data structure"
             },
             "correctAnswer": "C",
-            "topic": "Example Sub Topic"
+            "topic": "Polymorphism"
           }
         ]
       }
-
-      Rules:
-      - Ensure each question has exactly 4 answer choices (A, B, C, D).
-      - Provide the correct answer as a single letter.
-      - Assign a subtopic.
-      - Adjust difficulty to match ${proficiencyLevel}.
-      - Questions must be relevant to the module.
     `;
 
     // Call OpenAI API
@@ -70,19 +79,30 @@ export const generateQuizQuestions = onRequest(async (req, res) => {
       temperature: 0.7,
     });
 
-    // Extract JSON response safely
-    const quizData = response.choices[0]?.message?.content ?? "{}"; // Default to empty JSON object if null
+    let quizData = response.choices[0]?.message?.content?.trim(); // Trim extra spaces
 
-    try {
-      const parsedQuizData = JSON.parse(quizData);
-      res.status(200).json(parsedQuizData);
-    } catch (error) {
-      console.error("Error parsing OpenAI response:", error);
-      res.status(500).json({ error: "Invalid JSON received from OpenAI" });
+    if (!quizData) {
+      console.error("Error: OpenAI response was empty.");
+      res.status(500).json({ error: "Failed to generate quiz" });
+      return;
     }
 
-  } catch (error) { 
-    console.error("Error generating quiz:", error);
+    try {
+      // 🔥 FORCE JSON CLEANUP 🔥
+      // Remove Markdown formatting (` ```json ... ``` `) if present
+      quizData = quizData.replace(/^```json\s*/g, "").replace(/```$/g, "").trim();
+
+      console.log("Received OpenAI Response:", quizData); // Debug log
+
+      const parsedQuizData = JSON.parse(quizData); // Parse the cleaned JSON
+      res.status(200).json(parsedQuizData);
+    } catch (error) {
+      console.error("❌ Error parsing OpenAI response:", error, "\n🔍 Raw Data:", quizData);
+      res.status(500).json({ error: "Invalid JSON received from OpenAI", rawResponse: quizData });
+    }
+
+  } catch (error) {
+    console.error("🔥 Error generating quiz:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
