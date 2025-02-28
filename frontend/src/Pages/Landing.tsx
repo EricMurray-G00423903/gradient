@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
@@ -9,7 +9,7 @@ import "swiper/css/navigation";
 import GoogleIcon from "@mui/icons-material/Google";
 import { auth, firestore } from "../firebase"; 
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, getDoc } from "firebase/firestore";
 
 // Features for the slideshow
 const slides = [
@@ -23,19 +23,28 @@ const Landing = () => {
   const [screen, setScreen] = useState<"landing" | "login" | "signup">("landing");
   const [form, setForm] = useState({ name: "", course: "", email: "", password: "" });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => 
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (screen === "signup" && form.password.length < 6) {
       alert("Password must be at least 6 characters long.");
       return;
     }
+
     try {
       if (screen === "signup") {
         const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
         const user = userCredential.user;
-        await setDoc(doc(firestore, "users", user.uid), { name: form.name, course: form.course, email: form.email });
+
+        // 🔹 Store user in Firestore
+        await setDoc(doc(firestore, "users", user.uid), {
+          name: form.name,
+          course: form.course,
+          email: form.email,
+        });
       } else {
         await signInWithEmailAndPassword(auth, form.email, form.password);
       }
@@ -47,9 +56,23 @@ const Landing = () => {
   const handleGoogleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // 🔹 Check if user exists in Firestore
+      const userRef = doc(firestore, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        // 🔹 New User: Save data in Firestore
+        await setDoc(userRef, {
+          name: user.displayName || "User",
+          email: user.email,
+          course: "",
+        });
+      }
     } catch (error: any) {
-      alert(error.message);
+      alert("Google Sign-In Error: " + error.message);
     }
   };
 
@@ -67,13 +90,13 @@ const Landing = () => {
         padding: "1.5rem",
       }}
     >
+      {/* LANDING PAGE WITH SLIDESHOW */}
       {screen === "landing" && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ width: "100%", maxWidth: "400px" }}>
-          {/* Welcome Message */}
           <Typography variant="h3" fontWeight="bold">Welcome to Gradient</Typography>
           <Typography variant="h6" sx={{ mt: 2 }}>Your AI-powered study planner and portfolio builder.</Typography>
 
-          {/* Feature Slideshow (Updated Swiper Component) */}
+          {/* Slideshow */}
           <Swiper
             modules={[Autoplay, Pagination, Navigation]}
             pagination={{ clickable: true }}
@@ -94,20 +117,20 @@ const Landing = () => {
             ))}
           </Swiper>
 
-          {/* Get Started Button */}
+          {/*  Get Started Button */}
           <Button variant="contained" color="secondary" sx={{ mt: 4, px: 4, py: 1.5, fontSize: "1.2rem" }} onClick={() => setScreen("login")}>
             Get Started
           </Button>
         </motion.div>
       )}
 
-      {/* 🔑 LOGIN SCREEN */}
+      {/*  LOGIN SCREEN */}
       {screen === "login" && (
         <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} style={{ width: "100%", maxWidth: "400px" }}>
           <Typography variant="h4" fontWeight="bold">Log In</Typography>
           <form onSubmit={handleSubmit}>
-            <input type="email" name="email" placeholder="Email" onChange={handleChange} required style={{ marginBottom: "10px", padding: "10px", width: "100%" }} />
-            <input type="password" name="password" placeholder="Password" onChange={handleChange} required style={{ marginBottom: "10px", padding: "10px", width: "100%" }} />
+            <TextField label="Email" name="email" type="email" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
+            <TextField label="Password" name="password" type="password" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
             <Button type="submit" variant="contained" color="primary" fullWidth sx={{ py: 1.5 }}>Log In</Button>
           </form>
           <Button variant="outlined" startIcon={<GoogleIcon />} fullWidth sx={{ mt: 2, py: 1.5 }} onClick={handleGoogleSignIn}>Continue with Google</Button>
