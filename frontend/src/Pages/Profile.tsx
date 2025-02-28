@@ -140,7 +140,7 @@ const Profile = () => {
         variant="contained"
         sx={{ mt: 3, px: 4, py: 1.5 }}
         startIcon={<AddCircleIcon />}
-        onClick={() => navigate("/add-module")}
+        onClick={() => navigate("/Modules")}
         color="primary"
       >
         Add Module
