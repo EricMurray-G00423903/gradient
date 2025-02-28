@@ -10,6 +10,7 @@ import Settings from './Pages/Settings';
 import BottomNav from './Components/BottomNav';
 import Login from './Pages/Login';
 import Profile from './Pages/Profile';
+import Quiz from './Pages/Quiz';
 
 // Creating a dark theme with purple highlights
 const theme = createTheme({
@@ -40,6 +41,7 @@ function App() {
             <Route path="/login" element={<Login />} /> {/* Now used for both Login & Sign-Up */}
             <Route path="/modules" element={<Modules />} />
             <Route path="/module-details" element={<ModuleDetails />} />
+            <Route path="/quiz" element={<Quiz />} />
             <Route path="/study-planner" element={<StudyPlanner />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/settings" element={<Settings />} />
