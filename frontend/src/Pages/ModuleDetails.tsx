@@ -11,14 +11,17 @@ import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 import QuizIcon from "@mui/icons-material/Quiz";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbIcon from "@mui/icons-material/DoNotDisturb";
-
-const HARDCODED_UID = "LDkrfJqOSvV59ddYaLTUdI9lgWB2"; // Replace later with auth
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const ModuleDetails = () => {
   const [searchParams] = useSearchParams();
   const moduleId: string = searchParams.get("id") || "";
   const navigate = useNavigate();
 
+  // 🔥 Dynamic User State
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Module Details State
   const [moduleName, setModuleName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [techStack, setTechStack] = useState<string>("");
@@ -27,17 +30,26 @@ const ModuleDetails = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isQuizUnlocked, setIsQuizUnlocked] = useState<boolean>(false);
 
+  // 🚀 Get User ID Dynamically on Mount
   useEffect(() => {
-    if (!moduleId) {
-      console.error("No module ID found.");
-      navigate("/modules");
-      return;
-    }
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        navigate("/login"); // 🔄 Redirect if user is not authenticated
+      }
+    });
+  }, [navigate]);
+
+  // 🚀 Fetch Module Data When `userId` & `moduleId` are Set
+  useEffect(() => {
+    if (!moduleId || !userId) return;
 
     const fetchModuleData = async () => {
       setIsLoading(true);
       try {
-        const moduleData = await getModuleById(HARDCODED_UID, moduleId);
+        const moduleData = await getModuleById(userId, moduleId);
         if (moduleData) {
           setModuleName(moduleData.name);
           setDescription(moduleData.description || "");
@@ -45,7 +57,7 @@ const ModuleDetails = () => {
           setAssessmentType(moduleData.assessmentType || "");
           setModuleActivities(moduleData.moduleActivities || "");
 
-          // ✅ Automatically unlock quiz if all fields are already filled
+          // ✅ Unlock quiz if all fields are filled
           setIsQuizUnlocked(
             !!(moduleData.description && moduleData.techStack && moduleData.assessmentType && moduleData.moduleActivities)
           );
@@ -57,16 +69,22 @@ const ModuleDetails = () => {
     };
 
     fetchModuleData();
-  }, [moduleId, navigate]);
+  }, [moduleId, userId]);
 
+  // 🚀 Handle Saving Module Details
   const handleSave = async () => {
     if (!description.trim() || !techStack.trim() || !assessmentType.trim() || !moduleActivities.trim()) {
       alert("Please fill in all fields before saving.");
       return;
     }
 
+    if (!userId) {
+      alert("User not authenticated.");
+      return;
+    }
+
     try {
-      await updateModuleDescription(HARDCODED_UID, moduleId, {
+      await updateModuleDescription(userId, moduleId, {
         description,
         techStack,
         assessmentType,
@@ -74,8 +92,6 @@ const ModuleDetails = () => {
       });
 
       alert("Module details saved successfully!");
-
-      // ✅ Ensure quiz unlocks dynamically after save
       setIsQuizUnlocked(true);
     } catch (error) {
       console.error("Error updating module details:", error);
