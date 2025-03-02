@@ -82,9 +82,6 @@ const QuizResults: React.FC<QuizResultsProps> = ({ module, userAnswers, question
       </Box>
 
       <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
-        <Button variant="contained" color="primary" onClick={onFinish} sx={{ fontWeight: "bold", fontSize: "16px" }}>
-          🔄 Retry Quiz
-        </Button>
         <Button variant="contained" color="secondary" onClick={() => window.location.href = "/modules"} sx={{ fontWeight: "bold", fontSize: "16px" }}>
           📚 Back to Modules
         </Button>

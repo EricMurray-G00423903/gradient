@@ -82,7 +82,7 @@ export const generateQuizQuestions = onRequest(async (req, res): Promise<void> =
     let quizData = response.choices[0]?.message?.content?.trim(); // Trim extra spaces
 
     if (!quizData) {
-      console.error("Error: OpenAI response was empty.");
+      console.error("❌ OpenAI returned an empty response.");
       res.status(500).json({ error: "Failed to generate quiz" });
       return;
     }
@@ -90,9 +90,15 @@ export const generateQuizQuestions = onRequest(async (req, res): Promise<void> =
     try {
       // 🔥 FORCE JSON CLEANUP 🔥
       // Remove Markdown formatting (` ```json ... ``` `) if present
-      quizData = quizData.replace(/^```json\s*/g, "").replace(/```$/g, "").trim();
+      quizData = quizData.replace(/^```json/g, "").replace(/```$/g, "").trim();
 
-      console.log("Received OpenAI Response:", quizData); // Debug log
+      console.log("✅ Received OpenAI Response:", quizData); // Debug log
+
+      // Extra Safety: Check if response starts with `{` (ensures it's JSON)
+      if (!quizData.startsWith("{")) {
+        console.error("❌ OpenAI response does not start with JSON format!");
+        throw new Error("OpenAI did not return valid JSON format.");
+      }
 
       const parsedQuizData = JSON.parse(quizData); // Parse the cleaned JSON
       res.status(200).json(parsedQuizData);
