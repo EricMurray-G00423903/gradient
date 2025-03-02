@@ -8,38 +8,44 @@ interface Question {
 }
 
 interface QuizQuestionProps {
-  question: Question; // ✅ Accepts a single question instead of an array
+  question: Question;
   questionIndex: number;
-  userAnswers: { [key: number]: string };
-  onAnswer: (questionIndex: number, selectedAnswer: string) => void;
-  onFinish: () => void;
+  userAnswer: string; // ✅ Accepts only the current question's answer
+  onAnswer: (selectedAnswer: string) => void; // ✅ No need to pass questionIndex
 }
 
 const QuizQuestion: React.FC<QuizQuestionProps> = ({
   question,
   questionIndex,
-  userAnswers,
+  userAnswer,
   onAnswer,
-  onFinish,
 }) => {
-  const handleAnswerClick = (answerKey: string) => {
-    onAnswer(questionIndex, answerKey);
-  };
-
   return (
-    <div>
+    <div style={{ textAlign: "center", padding: "20px" }}>
       <h2>Question {questionIndex + 1}</h2>
       <p>{question.question}</p>
-      <ul>
+
+      <ul style={{ listStyleType: "none", padding: 0 }}>
         {Object.entries(question.answers).map(([key, value]) => (
-          <li key={key}>
-            <button onClick={() => handleAnswerClick(key)}>
+          <li key={key} style={{ margin: "10px 0" }}>
+            <button
+              onClick={() => onAnswer(key)}
+              style={{
+                padding: "10px 15px",
+                width: "100%",
+                backgroundColor: userAnswer === key ? "#4caf50" : "#b39ddb",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
               {key}: {value}
             </button>
           </li>
         ))}
       </ul>
-      {questionIndex === 9 && <button onClick={onFinish}>Finish Quiz</button>}
     </div>
   );
 };

@@ -13,41 +13,102 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Define the Firebase function for OpenAI request
-export const askAI = onRequest(async (req, res) => {
+/**
+ * Generate Quiz Questions from OpenAI
+ */
+export const generateQuizQuestions = onRequest(async (req, res): Promise<void> => {
   try {
-    // Log the incoming request headers and body
-    console.log("Received request headers:", req.headers);
-    console.log("Received request body:", JSON.stringify(req.body, null, 2));
+    // Enable CORS for frontend requests
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
 
-    // Validate request body and check if prompt is provided
-    if (!req.body || !req.body.prompt) {
-      console.error("Error: Request body is missing or malformed");
-      res.status(400).json({ error: "Missing prompt in request" });
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
       return;
     }
 
-    const prompt = req.body.prompt; // Extract the prompt from the request
-    console.log("Sending to OpenAI:", prompt);
+    const { moduleName, proficiencyScore, moduleDescription } = req.body;
 
-    // Call OpenAI API to get the completion response
+    if (!moduleName || proficiencyScore === undefined || !moduleDescription) {
+      res.status(400).json({ error: "Missing required fields" });
+      return;
+    }
+
+    // Convert Proficiency Score (0-100) into Readable Levels
+    const getProficiencyLevel = (score: number): string => {
+      if (score < 25) return "Beginner";
+      if (score < 50) return "Intermediate";
+      if (score < 75) return "Advanced";
+      if (score < 90) return "Very Advanced";
+      return "Expert";
+    };
+
+    const proficiencyLevel = getProficiencyLevel(proficiencyScore);
+
+    // Define OpenAI Prompt
+    const prompt = `
+      You are an AI that generates multiple-choice quizzes for learning.
+      Create 10 multiple-choice questions for the module "${moduleName}".
+      Ensure difficulty level matches a ${proficiencyLevel} learner.
+      Module Description: ${moduleDescription}
+
+      Respond **ONLY** with **raw JSON format** (DO NOT include Markdown formatting, DO NOT wrap with triple backticks).
+
+      {
+        "questions": [
+          {
+            "question": "What is polymorphism in OOP?",
+            "answers": {
+              "A": "A design pattern",
+              "B": "A type of variable",
+              "C": "The ability of a function to operate on different data types",
+              "D": "A data structure"
+            },
+            "correctAnswer": "C",
+            "topic": "Polymorphism"
+          }
+        ]
+      }
+    `;
+
+    // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: "gpt-4", // Use GPT-4 model
-      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4o",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.7,
     });
 
-    // Log the AI response for debugging
-    console.log("AI Response:", response);
+    let quizData = response.choices[0]?.message?.content?.trim(); // Trim extra spaces
 
-    // Send the AI response back to the client
-    res.status(200).json({ reply: response.choices[0].message.content });
-  } catch (error) {
-    // Log the error if something goes wrong
-    console.error("OpenAI API Error:", error);
-    if (error instanceof Error) {
-      console.error("Error message:", error.message);
+    if (!quizData) {
+      console.error("❌ OpenAI returned an empty response.");
+      res.status(500).json({ error: "Failed to generate quiz" });
+      return;
     }
-    // Respond with a 500 error if AI call fails
-    res.status(500).json({ error: "Failed to communicate with OpenAI" });
+
+    try {
+      // 🔥 FORCE JSON CLEANUP 🔥
+      // Remove Markdown formatting (` ```json ... ``` `) if present
+      quizData = quizData.replace(/^```json/g, "").replace(/```$/g, "").trim();
+
+      console.log("✅ Received OpenAI Response:", quizData); // Debug log
+
+      // Extra Safety: Check if response starts with `{` (ensures it's JSON)
+      if (!quizData.startsWith("{")) {
+        console.error("❌ OpenAI response does not start with JSON format!");
+        throw new Error("OpenAI did not return valid JSON format.");
+      }
+
+      const parsedQuizData = JSON.parse(quizData); // Parse the cleaned JSON
+      res.status(200).json(parsedQuizData);
+    } catch (error) {
+      console.error("❌ Error parsing OpenAI response:", error, "\n🔍 Raw Data:", quizData);
+      res.status(500).json({ error: "Invalid JSON received from OpenAI", rawResponse: quizData });
+    }
+
+  } catch (error) {
+    console.error("🔥 Error generating quiz:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
