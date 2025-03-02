@@ -109,56 +109,79 @@ const Quiz = () => {
 
     const scorePercentage = (correctAnswers / totalQuestions) * 100;
 
+    // 🔥 Categorize Strong & Weak Topics
+    const topicScores: { [topic: string]: number } = {};
+
+    quizQuestions.forEach((q, index) => {
+      if (!topicScores[q.topic]) topicScores[q.topic] = 0;
+      if (userAnswers[index] === q.correctAnswer) topicScores[q.topic] += 1; // ✅ Correct answer = +1
+    });
+
+    const strongTopics = Object.keys(topicScores).filter(topic => topicScores[topic] >= 0.75 * totalQuestions); // 75%+ accuracy
+    const weakTopics = Object.keys(topicScores).filter(topic => topicScores[topic] < 0.75 * totalQuestions); // Below 75%
+
     // ✅ Update Firestore with results
-    await updateFirestoreResults(HARDCODED_UID, moduleId, scorePercentage);
+    await updateFirestoreResults(HARDCODED_UID, moduleId, scorePercentage, strongTopics, weakTopics);
 
     setStep("results");
-  };
+};
 
-  const updateFirestoreResults = async (userId: string, moduleId: string, score: number) => {
+const updateFirestoreResults = async (userId: string, moduleId: string, score: number, strongTopics: string[], weakTopics: string[]) => {
     try {
       const moduleRef = doc(db, `users/${userId}/modules/${moduleId}`);
-  
-      // Fetch current proficiency from Firestore
+
+      // Fetch current proficiency & previous topic data from Firestore
       const moduleSnapshot = await getDoc(moduleRef);
       const currentProficiency = moduleSnapshot.exists() ? moduleSnapshot.data().proficiency || 0 : 0;
-  
+      const existingStrongTopics = moduleSnapshot.exists() ? moduleSnapshot.data().strongTopics || {} : {};
+      const existingWeakTopics = moduleSnapshot.exists() ? moduleSnapshot.data().weakTopics || {} : {};
+
       // **Determine weight based on current proficiency**
       let weight = 1.0;
-      if (currentProficiency < 25) weight = 0.25; // Beginner
-      else if (currentProficiency < 50) weight = 0.5; // Intermediate
-      else if (currentProficiency < 75) weight = 0.75; // Advanced
-      else if (currentProficiency < 90) weight = 0.9; // Very Advanced
-      else weight = 1.0; // Expert
-  
+      let proficiencyLevel = "Expert";
+      if (currentProficiency < 25) { weight = 0.25; proficiencyLevel = "Beginner"; }
+      else if (currentProficiency < 50) { weight = 0.5; proficiencyLevel = "Intermediate"; }
+      else if (currentProficiency < 75) { weight = 0.75; proficiencyLevel = "Advanced"; }
+      else if (currentProficiency < 90) { weight = 0.9; proficiencyLevel = "Very Advanced"; }
+
       // **Calculate new proficiency score**
       const proficiencyIncrease = Math.round(score * weight);
       const newProficiency = Math.max(currentProficiency, proficiencyIncrease); // ✅ Only increase, never decrease
-  
-      // **Update Firestore if proficiency has improved**
+
+      // 🔥 Update Strong & Weak Topics (Store only Level, NOT raw scores)
+      strongTopics.forEach(topic => {
+        existingStrongTopics[topic] = proficiencyLevel;
+      });
+
+      weakTopics.forEach(topic => {
+        existingWeakTopics[topic] = proficiencyLevel;
+      });
+
+      // ✅ Always update lastTested & hasBeenTested
+      const updateData: any = {
+        hasBeenTested: true,
+        lastTested: Timestamp.now(),
+        strongTopics: existingStrongTopics,
+        weakTopics: existingWeakTopics,
+      };
+
+      // ✅ Only update proficiency if it's increasing
       if (newProficiency > currentProficiency) {
-        await updateDoc(moduleRef, {
-          hasBeenTested: true,
-          lastTested: Timestamp.now(),
-          proficiency: newProficiency, // ✅ Update proficiency only if it's increasing
-        });
-  
+        updateData.proficiency = newProficiency;
         console.log(`🔥 Firestore updated: Proficiency increased from ${currentProficiency} → ${newProficiency}`);
       } else {
-        // **Still update lastTested and hasBeenTested even if proficiency doesn't change**
-        await updateDoc(moduleRef, {
-          hasBeenTested: true,
-          lastTested: Timestamp.now(),
-          proficiency: currentProficiency, // ✅ Keep the same proficiency
-        });
-  
+        updateData.proficiency = currentProficiency;
         console.log("⚠️ Firestore updated: Last tested timestamp updated, but proficiency remains the same.");
       }
+
+      // ✅ Update Firestore
+      await updateDoc(moduleRef, updateData);
+
     } catch (error) {
       console.error("❌ Error updating Firestore:", error);
     }
-  };
-  
+};
+
 
   return (
     <Container maxWidth="md">

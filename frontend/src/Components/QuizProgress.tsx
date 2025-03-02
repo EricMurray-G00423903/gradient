@@ -7,8 +7,8 @@ interface QuizProgressProps {
 }
 
 const QuizProgress: React.FC<QuizProgressProps> = ({ currentQuestion, totalQuestions }) => {
-  const progress = ((currentQuestion) / totalQuestions) * 100; // ✅ Ensures 100% on last question
-
+  const progress = ((currentQuestion) / totalQuestions) * 100;
+  
   return (
     <Box sx={{ width: "100%", textAlign: "center", mt: 2, p: 1, bgcolor: "#1e1e1e", borderRadius: 2 }}>
       <Typography variant="body2" sx={{ color: "white", fontWeight: "bold" }}>
