@@ -59,22 +59,33 @@ const Landing = () => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-
-      // Check if user exists in Firestore
+  
+      if (!user) throw new Error("Google sign-in failed.");
+  
+      // Check if email is already in use
       const userRef = doc(firestore, "users", user.uid);
       const userSnap = await getDoc(userRef);
-
+  
       if (!userSnap.exists()) {
+        // If user is new, create Firestore record
         await setDoc(userRef, {
           name: user.displayName || "",
           email: user.email,
           course: "",
         });
+      } else {
+        console.log("User already exists, logging in...");
       }
+  
     } catch (error: any) {
-      alert("Google Sign-In Error: " + error.message);
+      if (error.code === "auth/account-exists-with-different-credential") {
+        alert("An account with this email already exists. Try logging in with your email and password.");
+      } else {
+        alert("Google Sign-In Error: " + error.message);
+      }
     }
   };
+  
 
   return (
     <Box
