@@ -148,81 +148,66 @@ const Profile = () => {
 
       {/* 🔹 Modal for Name & Course Entry */}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "90%",
-            maxWidth: "400px",
-            background: "#1e1e1e",
-            padding: "2rem",
-            borderRadius: "10px",
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="h5" fontWeight="bold" color="white">
-            Complete Your Profile
-          </Typography>
-          <Typography sx={{ mb: 2, color: "#bbb" }}>
-            Please enter your name and course to continue.
-          </Typography>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "90%",
+          maxWidth: "450px",
+          background: "#1e1e1e",
+          padding: "2.5rem",
+          borderRadius: "12px",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h4" fontWeight="bold" color="white" gutterBottom>
+          Complete Your Profile
+        </Typography>
+        <Typography sx={{ mb: 3, fontSize: "1.2rem", color: "#bbb" }}>
+          Please enter your full name and course to continue.
+        </Typography>
 
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, textAlign: "left" }}>
+          <Typography variant="h6" color="white">Full Name</Typography>
           <TextField
-            label="Full Name"
             variant="outlined"
             fullWidth
             value={name}
-            onChange={(e) => {
-              console.log("Name Updated:", e.target.value); // Debugging
-              setName(e.target.value);
-            }}
+            onChange={(e) => setName(e.target.value)}
             sx={{
-              mb: 2,
               background: "white",
-              borderRadius: "5px",
-              input: { color: "black" }, 
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "#ccc" },
-                "&:hover fieldset": { borderColor: "#a777e3" },
-                "&.Mui-focused fieldset": { borderColor: "#6e8efb" },
-              },
+              borderRadius: "8px",
+              input: { color: "black", fontSize: "1rem" },
             }}
           />
-
+          
+          <Typography variant="h6" color="white">Course Name</Typography>
           <TextField
-            label="Course Name"
             variant="outlined"
             fullWidth
             value={course}
-            onChange={(e) => {
-              console.log("Course Updated:", e.target.value); // Debugging
-              setCourse(e.target.value);
-            }}
+            onChange={(e) => setCourse(e.target.value)}
             sx={{
-              mb: 2,
               background: "white",
-              borderRadius: "5px",
-              input: { color: "black" }, 
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "#ccc" },
-                "&:hover fieldset": { borderColor: "#a777e3" },
-                "&.Mui-focused fieldset": { borderColor: "#6e8efb" },
-              },
+              borderRadius: "8px",
+              input: { color: "black", fontSize: "1rem" },
             }}
           />
-
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={handleSave}
-          >
-            Save & Continue
-          </Button>
         </Box>
-      </Modal>
+
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{ fontSize: "1.2rem", padding: "0.9rem", mt: 3 }}
+          onClick={handleSave}
+        >
+          Save & Continue
+        </Button>
+      </Box>
+    </Modal>
 
     </Box>
   );

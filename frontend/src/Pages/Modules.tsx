@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Container, Typography, TextField, Button, Box, List } from "@mui/material";
 import { getUserCourseAndModules, setUserCourse, addModule } from "../Utils/FirestoreService";
 import ModuleCard from "../Components/ModuleCard";
+import { getAuth } from "firebase/auth";
 
-const HARDCODED_UID = "LDkrfJqOSvV59ddYaLTUdI9lgWB2"; // Replace with actual Firebase UID
 
 const Modules = () => {
   const [userName, setUserName] = useState<string | null>(null);
@@ -16,7 +16,11 @@ const Modules = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const { name, course, modules } = await getUserCourseAndModules(HARDCODED_UID);
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (!user) return;
+        
+        const { name, course, modules } = await getUserCourseAndModules(user.uid);
         
         if (name) setUserName(name);
         if (course) {
@@ -28,7 +32,7 @@ const Modules = () => {
             id: mod.id,
             name: mod.name,
             proficiency: mod.proficiency,
-            hasBeenTested: mod.hasBeenTested ?? false, // ✅ Ensures it always exists
+            hasBeenTested: mod.hasBeenTested ?? false,
           })));
         }
       } catch (error) {
@@ -42,7 +46,11 @@ const Modules = () => {
   const handleSetCourse = async () => {
     if (!course.trim()) return;
     try {
-      await setUserCourse(HARDCODED_UID, course);
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      await setUserCourse(user.uid, course);
       setIsCourseSet(true);
     } catch (error) {
       console.error("Error saving course:", error);
@@ -52,7 +60,11 @@ const Modules = () => {
   const handleAddModule = async () => {
     if (!newModule.trim()) return;
     try {
-      await addModule(HARDCODED_UID, newModule);
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      await addModule(user.uid, newModule);
       setModules((prevModules) => [...prevModules, { id: Date.now().toString(), name: newModule, proficiency: 0, hasBeenTested: false }]);
       setNewModule("");
     } catch (error) {
