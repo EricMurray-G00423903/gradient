@@ -4,18 +4,17 @@ import { Container, Box, CircularProgress, Typography } from "@mui/material";
 import { getModuleById } from "../Utils/FirestoreService";
 import { db } from "../firebase";
 import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import QuizIntro from "../Components/QuizIntro";
 import QuizQuestion from "../Components/QuizQuestion";
 import QuizResults from "../Components/QuizResults";
 import QuizProgress from "../Components/QuizProgress";
 
-const HARDCODED_UID = "LDkrfJqOSvV59ddYaLTUdI9lgWB2"; // Temporary for testing
-
 const Quiz = () => {
   const [searchParams] = useSearchParams();
   const moduleId = searchParams.get("id") || "";
   const navigate = useNavigate();
-
+  const [userId, setUserId] = useState<string | null>(null);
   const [moduleData, setModuleData] = useState<any>(null);
   const [step, setStep] = useState<"intro" | "questions" | "results">("intro");
   const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
@@ -30,20 +29,29 @@ const Quiz = () => {
       navigate("/modules");
       return;
     }
-
-    const fetchModule = async () => {
-      try {
-        const data = await getModuleById(HARDCODED_UID, moduleId);
-        if (data) {
-          setModuleData(data);
+  
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        try {
+          const data = await getModuleById(user.uid, moduleId);
+          if (data) {
+            setModuleData(data);
+          } else {
+            console.error("Module not found for user:", user.uid);
+          }
+        } catch (error) {
+          console.error("Error fetching module:", error);
         }
-      } catch (error) {
-        console.error("Error fetching module:", error);
+      } else {
+        navigate("/login"); // Redirect if user is not authenticated
       }
-    };
-
-    fetchModule();
+    });
+  
+    return () => unsubscribe(); // Cleanup listener when component unmounts
   }, [moduleId, navigate]);
+  
 
   const startQuiz = async () => {
     if (!moduleData) return;
@@ -117,11 +125,25 @@ const Quiz = () => {
       if (userAnswers[index] === q.correctAnswer) topicScores[q.topic] += 1; // ✅ Correct answer = +1
     });
 
-    const strongTopics = Object.keys(topicScores).filter(topic => topicScores[topic] >= 0.75 * totalQuestions); // 75%+ accuracy
-    const weakTopics = Object.keys(topicScores).filter(topic => topicScores[topic] < 0.75 * totalQuestions); // Below 75%
+    const strongTopics = Object.keys(topicScores).filter((topic) => {
+      const totalAppearances = quizQuestions.filter((q) => q.topic === topic).length;
+      const accuracy = topicScores[topic] / totalAppearances;
+      return accuracy >= 0.75;
+    });
+    
+    const weakTopics = Object.keys(topicScores).filter((topic) => {
+      const totalAppearances = quizQuestions.filter((q) => q.topic === topic).length;
+      const accuracy = topicScores[topic] / totalAppearances;
+      return accuracy < 0.75;
+    });
+    
 
     // ✅ Update Firestore with results
-    await updateFirestoreResults(HARDCODED_UID, moduleId, scorePercentage, strongTopics, weakTopics);
+    if (userId) {
+      await updateFirestoreResults(userId, moduleId, scorePercentage, strongTopics, weakTopics);
+    } else {
+      console.error("User ID is null. Cannot update Firestore results.");
+    }
 
     setStep("results");
 };
