@@ -141,6 +141,7 @@ const Quiz = () => {
     // ✅ Update Firestore with results
     if (userId) {
       await updateFirestoreResults(userId, moduleId, scorePercentage, strongTopics, weakTopics);
+      fetchStudyPlan(userId, moduleId, scorePercentage, weakTopics);
     } else {
       console.error("User ID is null. Cannot update Firestore results.");
     }
@@ -204,6 +205,50 @@ const updateFirestoreResults = async (userId: string, moduleId: string, score: n
     }
 };
 
+const fetchStudyPlan = async (userId: string, moduleId: string, proficiency: number, weakTopics: string[]) => {
+  try {
+      console.log("📢 Fetching study plan...");
+
+      // **Fetch Module Data**
+      const moduleRef = doc(db, `users/${userId}/modules/${moduleId}`);
+      const moduleSnapshot = await getDoc(moduleRef);
+      if (!moduleSnapshot.exists()) {
+          console.error("❌ Module not found.");
+          return;
+      }
+
+      const moduleData = moduleSnapshot.data();
+      const moduleName = moduleData.name || "Unknown Module";
+      const moduleDescription = moduleData.description || "No description provided.";
+
+      // **Call Backend Function**
+      const response = await fetch("http://127.0.0.1:5001/gradient-3b33e/us-central1/generateStudyPlan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+              moduleName,
+              moduleDescription,
+              proficiency,
+              weakTopics
+          }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch study plan");
+
+      const studyPlan = await response.json();
+
+      console.log("✅ Study Plan Received:", studyPlan);
+
+      // **Store Study Plan in Firestore**
+      await updateDoc(moduleRef, {
+          studyPlan, // Directly store study plan
+      });
+
+      console.log("🔥 Study plan saved to Firestore!");
+  } catch (error) {
+      console.error("❌ Error fetching study plan:", error);
+  }
+};
 
   return (
     <Container maxWidth="md">
