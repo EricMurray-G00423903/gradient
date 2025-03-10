@@ -53,10 +53,10 @@ const Projects = () => {
         }));
         setModules(modulesData);
       } else {
-        console.warn("⚠️ No modules found.");
+        console.warn("No modules found.");
       }
     } catch (error) {
-      console.error("❌ Error fetching modules:", error);
+      console.error("Error fetching modules:", error);
     }
     setLoading(false);
   };
@@ -73,7 +73,7 @@ const Projects = () => {
 
   const generateProject = async () => {
     if (!selectedModule) {
-      console.error("❌ No module selected.");
+      console.error("No module selected.");
       return;
     }
 
@@ -83,7 +83,7 @@ const Projects = () => {
       proficiencyLevel: selectedModule.proficiency || 0,
     };
 
-    console.log("📌 Sending request payload:", requestBody);
+    console.log("Sending request payload:", requestBody);
 
     try {
       const response = await fetch(
@@ -100,10 +100,10 @@ const Projects = () => {
         throw new Error(data.error || "Failed to generate project");
       }
 
-      console.log("✅ Received AI-generated project:", data);
+      console.log("Received AI-generated project:", data);
       setProjectDescription(data.description);
     } catch (error) {
-      console.error("❌ Error generating project:", error);
+      console.error("Error generating project:", error);
     }
     setGenerating(false);
   };

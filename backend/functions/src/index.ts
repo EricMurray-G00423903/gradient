@@ -82,33 +82,33 @@ export const generateQuizQuestions = onRequest(async (req, res): Promise<void> =
     let quizData = response.choices[0]?.message?.content?.trim(); // Trim extra spaces
 
     if (!quizData) {
-      console.error("❌ OpenAI returned an empty response.");
+      console.error("OpenAI returned an empty response.");
       res.status(500).json({ error: "Failed to generate quiz" });
       return;
     }
 
     try {
-      // 🔥 FORCE JSON CLEANUP 🔥
+      // FORCE JSON CLEANUP 
       // Remove Markdown formatting (` ```json ... ``` `) if present
       quizData = quizData.replace(/^```json/g, "").replace(/```$/g, "").trim();
 
-      console.log("✅ Received OpenAI Response:", quizData); // Debug log
+      console.log("Received OpenAI Response:", quizData); // Debug log
 
       // Extra Safety: Check if response starts with `{` (ensures it's JSON)
       if (!quizData.startsWith("{")) {
-        console.error("❌ OpenAI response does not start with JSON format!");
+        console.error("OpenAI response does not start with JSON format!");
         throw new Error("OpenAI did not return valid JSON format.");
       }
 
       const parsedQuizData = JSON.parse(quizData); // Parse the cleaned JSON
       res.status(200).json(parsedQuizData);
     } catch (error) {
-      console.error("❌ Error parsing OpenAI response:", error, "\n🔍 Raw Data:", quizData);
+      console.error("Error parsing OpenAI response:", error, "\n🔍 Raw Data:", quizData);
       res.status(500).json({ error: "Invalid JSON received from OpenAI", rawResponse: quizData });
     }
 
   } catch (error) {
-    console.error("🔥 Error generating quiz:", error);
+    console.error("Error generating quiz:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -136,7 +136,7 @@ export const generateStudyPlan = onRequest(async (req, res) => {
 
     const proficiencyLevel = getProficiencyLevel(proficiency);
 
-    // 🔥 Define OpenAI Prompt
+    // Define OpenAI Prompt
     const prompt = `
       You are an AI tutor generating study plans.
       The user is learning **${moduleName}**.
@@ -162,7 +162,7 @@ export const generateStudyPlan = onRequest(async (req, res) => {
       }
     `;
 
-    // 🔥 Call OpenAI API
+    // Call OpenAI API
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "system", content: prompt }],
@@ -172,25 +172,25 @@ export const generateStudyPlan = onRequest(async (req, res) => {
     let studyPlan = response.choices[0]?.message?.content?.trim();
 
     if (!studyPlan) {
-      console.error("❌ OpenAI response empty.");
+      console.error("OpenAI response empty.");
       res.status(500).json({ error: "Failed to generate study plan" });
       return;
     }
 
     try {
-      // 🔥 Clean up JSON response
+      // Clean up JSON response
       studyPlan = studyPlan.replace(/^```json\s*/g, "").replace(/```$/g, "").trim();
-      console.log("✅ Received OpenAI Response:", studyPlan);
+      console.log("Received OpenAI Response:", studyPlan);
 
       const parsedStudyPlan = JSON.parse(studyPlan);
       res.status(200).json(parsedStudyPlan);
     } catch (error) {
-      console.error("❌ JSON Parsing Error:", error, "\n🔍 Raw Data:", studyPlan);
+      console.error("JSON Parsing Error:", error, "\n🔍 Raw Data:", studyPlan);
       res.status(500).json({ error: "Invalid JSON from OpenAI", rawResponse: studyPlan });
     }
 
   } catch (error) {
-    console.error("🔥 Error generating study plan:", error);
+    console.error("Error generating study plan:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 
@@ -213,16 +213,16 @@ export const generateProject = onRequest(async (req, res) => {
 
     const { moduleName, proficiencyLevel } = req.body;
 
-    // ✅ Debug request payload
-    console.log("📌 Received request:", { moduleName, proficiencyLevel });
+    // Debug request payload
+    console.log("Received request:", { moduleName, proficiencyLevel });
 
     if (!moduleName || proficiencyLevel === undefined) {
-      console.error("❌ Missing required fields");
+      console.error("Missing required fields");
       res.status(400).json({ error: "Missing required fields (moduleName, proficiencyLevel)" });
       return;
     }
 
-    // ✅ Convert proficiency level to project difficulty
+    // Convert proficiency level to project difficulty
     let difficulty;
     if (proficiencyLevel >= 80) difficulty = "Advanced";
     else if (proficiencyLevel >= 50) difficulty = "Intermediate";
@@ -251,20 +251,20 @@ export const generateProject = onRequest(async (req, res) => {
     let projectData = response.choices[0]?.message?.content?.trim();
 
     if (!projectData) {
-      console.error("❌ OpenAI returned an empty response.");
+      console.error("OpenAI returned an empty response.");
       res.status(500).json({ error: "Failed to generate project" });
       return;
     }
 
-    // ✅ Clean response to ensure valid JSON
+    // Clean response to ensure valid JSON
     projectData = projectData.replace(/^```json\s*/g, "").replace(/```$/g, "").trim();
     const parsedProject = JSON.parse(projectData);
 
-    console.log("✅ Successfully generated project:", parsedProject);
+    console.log("Successfully generated project:", parsedProject);
     res.status(200).json(parsedProject);
 
   } catch (error) {
-    console.error("🔥 Error generating project:", error);
+    console.error("Error generating project:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
