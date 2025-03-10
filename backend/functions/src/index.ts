@@ -13,6 +13,15 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Convert Proficiency Score (0-100) into Readable Levels
+const getProficiencyLevel = (score: number): string => {
+  if (score < 25) return "Beginner";
+  if (score < 50) return "Intermediate";
+  if (score < 75) return "Advanced";
+  if (score < 90) return "Very Advanced";
+  return "Expert";
+};
+
 /**
  * Generate Quiz Questions from OpenAI
  */
@@ -34,15 +43,6 @@ export const generateQuizQuestions = onRequest(async (req, res): Promise<void> =
       res.status(400).json({ error: "Missing required fields" });
       return;
     }
-
-    // Convert Proficiency Score (0-100) into Readable Levels
-    const getProficiencyLevel = (score: number): string => {
-      if (score < 25) return "Beginner";
-      if (score < 50) return "Intermediate";
-      if (score < 75) return "Advanced";
-      if (score < 90) return "Very Advanced";
-      return "Expert";
-    };
 
     const proficiencyLevel = getProficiencyLevel(proficiencyScore);
 
@@ -109,6 +109,88 @@ export const generateQuizQuestions = onRequest(async (req, res): Promise<void> =
 
   } catch (error) {
     console.error("🔥 Error generating quiz:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/**
+ * Generate Study Plan from OpenAI
+ */
+export const generateStudyPlan = onRequest(async (req, res) => {
+  try {
+    res.set("Access-Control-Allow-Origin", "*"); // Allow frontend requests
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    const { moduleName, moduleDescription, proficiency, weakTopics } = req.body;
+
+    if (!moduleName || !moduleDescription || proficiency === undefined || !weakTopics) {
+      res.status(400).json({ error: "Missing required fields" });
+      return;
+    }
+
+    const proficiencyLevel = getProficiencyLevel(proficiency);
+
+    // 🔥 Define OpenAI Prompt
+    const prompt = `
+      You are an AI tutor generating study plans.
+      The user is learning **${moduleName}**.
+      Their **current proficiency** is **${proficiency}%**.
+      **Last Test Difficulty**: ${proficiencyLevel}.
+      **Module Description**: ${moduleDescription}.
+      Their **weak topics** from the last quiz: ${weakTopics.join(", ")}.
+
+      **Task**:
+      - Generate **3-4 key study points** they should focus on to improve, suggest sources to learn each study point specifically.
+      - Provide **1 small practical exercise** for hands-on practice.
+      - The exercise should be **short**, no bigger than a simple lab task, try make it fun where possible.
+
+      **Response Format (Strict JSON, no markdown, no extra text)**:
+      {
+        "studyTasks": [
+          "Task 1",
+          "Task 2",
+          "Task 3",
+          "Task 4"
+        ],
+        "exercise": "A simple exercise description here."
+      }
+    `;
+
+    // 🔥 Call OpenAI API
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.7,
+    });
+
+    let studyPlan = response.choices[0]?.message?.content?.trim();
+
+    if (!studyPlan) {
+      console.error("❌ OpenAI response empty.");
+      res.status(500).json({ error: "Failed to generate study plan" });
+      return;
+    }
+
+    try {
+      // 🔥 Clean up JSON response
+      studyPlan = studyPlan.replace(/^```json\s*/g, "").replace(/```$/g, "").trim();
+      console.log("✅ Received OpenAI Response:", studyPlan);
+
+      const parsedStudyPlan = JSON.parse(studyPlan);
+      res.status(200).json(parsedStudyPlan);
+    } catch (error) {
+      console.error("❌ JSON Parsing Error:", error, "\n🔍 Raw Data:", studyPlan);
+      res.status(500).json({ error: "Invalid JSON from OpenAI", rawResponse: studyPlan });
+    }
+
+  } catch (error) {
+    console.error("🔥 Error generating study plan:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
