@@ -193,4 +193,79 @@ export const generateStudyPlan = onRequest(async (req, res) => {
     console.error("🔥 Error generating study plan:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+
+  
 });
+
+/**
+ * Generate AI-Powered Project Idea
+ */
+export const generateProject = onRequest(async (req, res) => {
+  try {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    const { moduleName, proficiencyLevel } = req.body;
+
+    // ✅ Debug request payload
+    console.log("📌 Received request:", { moduleName, proficiencyLevel });
+
+    if (!moduleName || proficiencyLevel === undefined) {
+      console.error("❌ Missing required fields");
+      res.status(400).json({ error: "Missing required fields (moduleName, proficiencyLevel)" });
+      return;
+    }
+
+    // ✅ Convert proficiency level to project difficulty
+    let difficulty;
+    if (proficiencyLevel >= 80) difficulty = "Advanced";
+    else if (proficiencyLevel >= 50) difficulty = "Intermediate";
+    else difficulty = "Beginner";
+
+    const prompt = `
+      The user is learning **${moduleName}**.
+      Their proficiency level is **${proficiencyLevel}%**, which is considered **${difficulty}**.
+
+      **Task**:
+      - Suggest a project idea that is **${difficulty} difficulty**.
+      - Keep the project **simple for beginners, more complex for advanced users**.
+
+      **Response Format (JSON only, no markdown, no extra text)**:
+      {
+        "description": "A short project idea description."
+      }
+    `;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.7,
+    });
+
+    let projectData = response.choices[0]?.message?.content?.trim();
+
+    if (!projectData) {
+      console.error("❌ OpenAI returned an empty response.");
+      res.status(500).json({ error: "Failed to generate project" });
+      return;
+    }
+
+    // ✅ Clean response to ensure valid JSON
+    projectData = projectData.replace(/^```json\s*/g, "").replace(/```$/g, "").trim();
+    const parsedProject = JSON.parse(projectData);
+
+    console.log("✅ Successfully generated project:", parsedProject);
+    res.status(200).json(parsedProject);
+
+  } catch (error) {
+    console.error("🔥 Error generating project:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
