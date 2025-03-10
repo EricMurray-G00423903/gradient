@@ -64,7 +64,7 @@ const Quiz = () => {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:5001/gradient-3b33e/us-central1/generateQuizQuestions",
+        "https://generatequizquestions-talutcxweq-uc.a.run.app ",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -222,7 +222,7 @@ const fetchStudyPlan = async (userId: string, moduleId: string, proficiency: num
       const moduleDescription = moduleData.description || "No description provided.";
 
       // **Call Backend Function**
-      const response = await fetch("http://127.0.0.1:5001/gradient-3b33e/us-central1/generateStudyPlan", {
+      const response = await fetch("https://generatestudyplan-talutcxweq-uc.a.run.app", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -239,16 +239,33 @@ const fetchStudyPlan = async (userId: string, moduleId: string, proficiency: num
 
       console.log("✅ Study Plan Received:", studyPlan);
 
+      // **🔥 Format Study Tasks Properly**
+      let formattedStudyTasks = [];
+      if (Array.isArray(studyPlan.studyTasks)) {
+          formattedStudyTasks = studyPlan.studyTasks.map((task: string) => ({
+              description: task, // ✅ Ensure it's saved as an object
+              completed: false,  // ✅ Default to false
+          }));
+      }
+
+      // **🔥 Ensure Proper Structure**
+      const formattedStudyPlan = {
+          studyTasks: formattedStudyTasks, // ✅ Now an array of objects
+          exercise: studyPlan.exercise || "No exercise provided.", // ✅ Ensure exercise is a string
+      };
+
       // **Store Study Plan in Firestore**
       await updateDoc(moduleRef, {
-          studyPlan, // Directly store study plan
+          studyPlan: formattedStudyPlan, // ✅ Save correctly formatted data
       });
 
       console.log("🔥 Study plan saved to Firestore!");
+
   } catch (error) {
       console.error("❌ Error fetching study plan:", error);
   }
 };
+
 
   return (
     <Container maxWidth="md">
