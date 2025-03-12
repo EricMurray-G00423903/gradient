@@ -54,38 +54,28 @@ const Quiz = () => {
   
 
   const startQuiz = async () => {
-    if (!moduleData) return;
-
+    if (!moduleData || !userId) return;
     setLoading(true);
     setError(null);
-    setQuizQuestions([]); // ✅ Clears old questions before fetching new ones
-    setUserAnswers({}); // ✅ Reset user answers
-    setCurrentQuestionIndex(0); // ✅ Reset question index
-
     try {
-      const response = await fetch(
-        "https://generatequizquestions-talutcxweq-uc.a.run.app ",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            moduleName: moduleData.name,
-            proficiencyScore: moduleData.proficiency || 0,
-            moduleDescription: moduleData.description || "No description provided.",
-          }),
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch quiz questions");
-
-      const data = await response.json();
-      if (!data.questions || data.questions.length === 0) throw new Error("Invalid response format from AI");
-
-      setQuizQuestions(data.questions);
+      // Fetch the latest module data to retrieve quizQuestions from Firestore
+      const updatedModuleData = await getModuleById(userId, moduleId);
+      if (!updatedModuleData || !updatedModuleData.quizQuestions) {
+        throw new Error("Quiz not ready. Please try again shortly.");
+      }
+      const questions = updatedModuleData.quizQuestions;
+      if (!questions || questions.length === 0) {
+        throw new Error("Quiz not ready. Please try again shortly.");
+      }
+      setQuizQuestions(questions);
       setStep("questions");
     } catch (err) {
-      console.error("Quiz API Error:", err);
-      setError("Failed to generate quiz. Please try again later.");
+      console.error("Quiz Error:", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to load quiz questions.");
+      }
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { 
-  Container, Typography, TextField, Button, Box, Card, CardContent
+  Container, Typography, TextField, Button, Box, Card, CardContent, Snackbar, CircularProgress
 } from "@mui/material";
 import { getModuleById, updateModuleDescription } from "../Utils/FirestoreService";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -9,6 +9,8 @@ import QuizIcon from "@mui/icons-material/Quiz";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbIcon from "@mui/icons-material/DoNotDisturb";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { doc, updateDoc, getDoc, Timestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
 const ModuleDetails = () => {
   const [searchParams] = useSearchParams();
@@ -23,6 +25,8 @@ const ModuleDetails = () => {
   const [description, setDescription] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isQuizUnlocked, setIsQuizUnlocked] = useState<boolean>(false);
+  const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
+  const [prefetchLoading, setPrefetchLoading] = useState(false);
 
   // 🚀 Get User ID Dynamically on Mount
   useEffect(() => {
@@ -62,7 +66,7 @@ const ModuleDetails = () => {
     fetchModuleData();
   }, [moduleId, userId]);
 
-  // 🚀 Handle Saving Module Details
+  // 🚀 Handle Saving Module Details and prefetch quiz questions
   const handleSave = async () => {
     if (!description.trim()) {
       alert("Please fill in all fields before saving.");
@@ -79,11 +83,44 @@ const ModuleDetails = () => {
         description,
       });
 
-      alert("Module details saved successfully!");
-      setIsQuizUnlocked(true);
+      // Open MUI success snackbar
+      setSuccessSnackbarOpen(true);
+
+      // Begin prefetching quiz questions from OpenAI
+      prefetchQuizQuestions();
     } catch (error) {
       console.error("Error updating module details:", error);
     }
+  };
+
+  // 🚀 Prefetch Quiz Questions and save them to Firestore
+  const prefetchQuizQuestions = async () => {
+    setPrefetchLoading(true);
+    try {
+      const response = await fetch(
+        "https://generatequizquestions-talutcxweq-uc.a.run.app",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            moduleName,
+            proficiencyScore: 0, // Assuming default proficiency here
+            moduleDescription: description || "No description provided.",
+          }),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch quiz questions");
+      const data = await response.json();
+      if (!data.questions || data.questions.length === 0) {
+        throw new Error("Invalid quiz questions received");
+      }
+      const moduleRef = doc(db, `users/${userId}/modules/${moduleId}`);
+      // Clear old quiz questions and write new ones
+      await updateDoc(moduleRef, { quizQuestions: data.questions });
+    } catch (error) {
+      console.error("Error prefetching quiz questions:", error);
+    }
+    setPrefetchLoading(false);
   };
 
   if (isLoading) return <Typography>Loading...</Typography>;
@@ -133,6 +170,15 @@ const ModuleDetails = () => {
         </Button>
       </Box>
 
+      {prefetchLoading && (
+        <Box sx={{ mt: 2, textAlign: "center" }}>
+          <CircularProgress size={24} />
+          <Typography sx={{ mt: 1 }}>
+            Preparing Your Personalised Assessment...
+          </Typography>
+        </Box>
+      )}
+
       {/* Take Quiz Button (Appears if all details are filled) */}
       {isQuizUnlocked && (
         <Box sx={{ mt: 4, textAlign: "center" }}>
@@ -147,6 +193,13 @@ const ModuleDetails = () => {
           </Button>
         </Box>
       )}
+
+      <Snackbar
+        open={successSnackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSuccessSnackbarOpen(false)}
+        message="Module details saved successfully!"
+      />
     </Container>
   );
 };
