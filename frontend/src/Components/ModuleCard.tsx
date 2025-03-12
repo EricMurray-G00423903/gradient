@@ -6,9 +6,10 @@ interface ModuleProps {
   description?: string;
   proficiency: number;
   hasBeenTested?: boolean;
+  ready?: boolean;
 }
 
-const ModuleCard: React.FC<ModuleProps> = ({ id, name, description, proficiency, hasBeenTested = false }) => {
+const ModuleCard: React.FC<ModuleProps> = ({ id, name, description, proficiency, hasBeenTested = false, ready = true }) => {
   return (
     <Card sx={{ mb: 2, p: 2, width: "100%" }}>
       <CardContent>
@@ -19,7 +20,12 @@ const ModuleCard: React.FC<ModuleProps> = ({ id, name, description, proficiency,
         </Typography>
 
         <Box mt={2}>
-          <Button variant="contained" color="primary" onClick={() => window.location.href = `/module-details?id=${id}`}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            disabled={!ready}
+            onClick={() => ready && (window.location.href = `/module-details?id=${id}`)}
+          >
             Go to Module
           </Button>
         </Box>

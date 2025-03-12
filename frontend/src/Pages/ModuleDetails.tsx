@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { 
-  Container, Typography, TextField, Button, Box, Card, CardContent, Snackbar, CircularProgress
+  Container, Typography, TextField, Button, Box, Card, CardContent, Snackbar, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import { getModuleById, updateModuleDescription } from "../Utils/FirestoreService";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -9,7 +9,7 @@ import QuizIcon from "@mui/icons-material/Quiz";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoNotDisturbIcon from "@mui/icons-material/DoNotDisturb";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { doc, updateDoc, getDoc, Timestamp } from "firebase/firestore";
+import { doc, updateDoc, getDoc, Timestamp, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 const ModuleDetails = () => {
@@ -25,8 +25,11 @@ const ModuleDetails = () => {
   const [description, setDescription] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isQuizUnlocked, setIsQuizUnlocked] = useState<boolean>(false);
+  const [isAssessmentReady, setIsAssessmentReady] = useState<boolean>(false); // new state
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
-  const [prefetchLoading, setPrefetchLoading] = useState(false);
+  const [quizAssessmentSnackbarOpen, setQuizAssessmentSnackbarOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
 
   // 🚀 Get User ID Dynamically on Mount
   useEffect(() => {
@@ -40,29 +43,27 @@ const ModuleDetails = () => {
     });
   }, [navigate]);
 
-  // 🚀 Fetch Module Data When `userId` & `moduleId` are Set
+  // Remove polling related code and use a single fetch effect
   useEffect(() => {
     if (!moduleId || !userId) return;
-
     const fetchModuleData = async () => {
-      setIsLoading(true);
       try {
         const moduleData = await getModuleById(userId, moduleId);
         if (moduleData) {
           setModuleName(moduleData.name);
           setDescription(moduleData.description || "");
-
-          // ✅ Unlock quiz if all fields are filled
-          setIsQuizUnlocked(
-            !!(moduleData.description)
-          );
+          setIsQuizUnlocked(!!moduleData.description);
+          // If quizQuestions already exist, mark assessment as ready
+          if(moduleData.quizQuestions && moduleData.quizQuestions.length > 0) {
+            setIsAssessmentReady(true);
+          }
         }
       } catch (error) {
         console.error("Error fetching module data:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
-
     fetchModuleData();
   }, [moduleId, userId]);
 
@@ -83,10 +84,10 @@ const ModuleDetails = () => {
         description,
       });
 
-      // Open MUI success snackbar
+      // Show details saved snackbar immediately
       setSuccessSnackbarOpen(true);
 
-      // Begin prefetching quiz questions from OpenAI
+      // Prefetch quiz questions
       prefetchQuizQuestions();
     } catch (error) {
       console.error("Error updating module details:", error);
@@ -95,7 +96,6 @@ const ModuleDetails = () => {
 
   // 🚀 Prefetch Quiz Questions and save them to Firestore
   const prefetchQuizQuestions = async () => {
-    setPrefetchLoading(true);
     try {
       const response = await fetch(
         "https://generatequizquestions-talutcxweq-uc.a.run.app",
@@ -117,10 +117,40 @@ const ModuleDetails = () => {
       const moduleRef = doc(db, `users/${userId}/modules/${moduleId}`);
       // Clear old quiz questions and write new ones
       await updateDoc(moduleRef, { quizQuestions: data.questions });
+      // Show Assessment Ready snackbar and update state so quiz button appears
+      setQuizAssessmentSnackbarOpen(true);
+      setIsAssessmentReady(true);
     } catch (error) {
       console.error("Error prefetching quiz questions:", error);
     }
-    setPrefetchLoading(false);
+  };
+
+  // Function to open the delete confirmation dialog
+  const handleOpenDeleteDialog = () => {
+    setDeleteDialogOpen(true);
+    setDeleteConfirmInput("");
+  };
+
+  // Function to close the dialog
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setDeleteConfirmInput("");
+  };
+
+  // Function to handle the actual deletion if module name is confirmed
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmInput !== moduleName) {
+      // Optionally, you can provide user feedback here about a mismatch.
+      return;
+    }
+    try {
+      if (!userId) throw new Error("User not authenticated.");
+      await deleteDoc(doc(db, `users/${userId}/modules/${moduleId}`));
+      // Navigate back to modules after deletion.
+      navigate("/modules");
+    } catch (error) {
+      console.error("Error deleting module:", error);
+    }
   };
 
   if (isLoading) return <Typography>Loading...</Typography>;
@@ -168,19 +198,19 @@ const ModuleDetails = () => {
         >
           Cancel
         </Button>
+        
+        {/* New Delete Button */}
+        <Button 
+                  variant="contained" 
+                  color="error" 
+                  onClick={handleOpenDeleteDialog}
+                >
+                  Delete Module
+                </Button>
       </Box>
 
-      {prefetchLoading && (
-        <Box sx={{ mt: 2, textAlign: "center" }}>
-          <CircularProgress size={24} />
-          <Typography sx={{ mt: 1 }}>
-            Preparing Your Personalised Assessment...
-          </Typography>
-        </Box>
-      )}
-
-      {/* Take Quiz Button (Appears if all details are filled) */}
-      {isQuizUnlocked && (
+      {/* Updated quiz button: only show when assessment is ready */}
+      {isAssessmentReady && (
         <Box sx={{ mt: 4, textAlign: "center" }}>
           <Button 
             variant="contained" 
@@ -194,12 +224,47 @@ const ModuleDetails = () => {
         </Box>
       )}
 
+      {/* Snackbars for quiz assessment & module details saved */}
+      <Snackbar
+        open={quizAssessmentSnackbarOpen}
+        autoHideDuration={5000}
+        onClose={() => setQuizAssessmentSnackbarOpen(false)}
+        message="Assessment Ready!"
+      />
       <Snackbar
         open={successSnackbarOpen}
         autoHideDuration={3000}
         onClose={() => setSuccessSnackbarOpen(false)}
-        message="Module details saved successfully!"
+        message="Module details saved successfully! Generating Assessment..."
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>Confirm Module Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>
+            To confirm deletion, please type the module name: <strong>{moduleName}</strong>
+          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Module Name"
+            fullWidth
+            value={deleteConfirmInput}
+            onChange={(e) => setDeleteConfirmInput(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button 
+            onClick={handleConfirmDelete} 
+            disabled={deleteConfirmInput !== moduleName}
+            color="error"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
