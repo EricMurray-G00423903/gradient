@@ -25,7 +25,8 @@ const ModuleDetails = () => {
   const [description, setDescription] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isQuizUnlocked, setIsQuizUnlocked] = useState<boolean>(false);
-  const [isAssessmentReady, setIsAssessmentReady] = useState<boolean>(false); // new state
+  const [hasBeenTested, setHasBeenTested] = useState<boolean>(false);
+  const [studyTasks, setStudyTasks] = useState<any[]>([]);
   const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
   const [quizAssessmentSnackbarOpen, setQuizAssessmentSnackbarOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -53,10 +54,8 @@ const ModuleDetails = () => {
           setModuleName(moduleData.name);
           setDescription(moduleData.description || "");
           setIsQuizUnlocked(!!moduleData.description);
-          // If quizQuestions already exist, mark assessment as ready
-          if(moduleData.quizQuestions && moduleData.quizQuestions.length > 0) {
-            setIsAssessmentReady(true);
-          }
+          setHasBeenTested(moduleData.hasBeenTested ?? false);
+          setStudyTasks(moduleData.studyPlan?.studyTasks || []);
         }
       } catch (error) {
         console.error("Error fetching module data:", error);
@@ -119,7 +118,7 @@ const ModuleDetails = () => {
       await updateDoc(moduleRef, { quizQuestions: data.questions });
       // Show Assessment Ready snackbar and update state so quiz button appears
       setQuizAssessmentSnackbarOpen(true);
-      setIsAssessmentReady(true);
+      setHasBeenTested(true);
     } catch (error) {
       console.error("Error prefetching quiz questions:", error);
     }
@@ -209,8 +208,8 @@ const ModuleDetails = () => {
                 </Button>
       </Box>
 
-      {/* Updated quiz button: only show when assessment is ready */}
-      {isAssessmentReady && (
+      {/* Updated quiz button logic */}
+      {description && !hasBeenTested && (
         <Box sx={{ mt: 4, textAlign: "center" }}>
           <Button 
             variant="contained" 
@@ -220,6 +219,20 @@ const ModuleDetails = () => {
             onClick={() => navigate(`/quiz?id=${moduleId}`)}
           >
             Take Proficiency Quiz
+          </Button>
+        </Box>
+      )}
+      {description && hasBeenTested && studyTasks.length > 0 && 
+       studyTasks.every((task: any) => task.completed) && (
+        <Box sx={{ mt: 4, textAlign: "center" }}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            size="large" 
+            startIcon={<QuizIcon />} 
+            onClick={() => navigate(`/quiz?id=${moduleId}`)}
+          >
+            Retake Quiz
           </Button>
         </Box>
       )}
