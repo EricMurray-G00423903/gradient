@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import GetAppIcon from '@mui/icons-material/GetApp';
 
 const InstallPWA: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -14,13 +15,33 @@ const InstallPWA: React.FC = () => {
 
   return (
     <>
-      <Button variant="contained" color="primary" onClick={handleInstallClick} style={{ width: "100%" }}>
-        Install
+      <Button 
+        variant="contained" 
+        startIcon={<GetAppIcon />}
+        onClick={handleInstallClick} 
+        sx={{ 
+          width: "100%",
+          bgcolor: "#5500aa",
+          '&:hover': { bgcolor: "#7722cc" },
+          borderRadius: '8px',
+          fontWeight: 500,
+        }}
+      >
+        Install App
       </Button>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>📲 How to Install Gradient</DialogTitle>
+      <Dialog 
+        open={open} 
+        onClose={handleClose}
+        PaperProps={{
+          sx: {
+            borderRadius: '12px',
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: "#5500aa", fontWeight: "bold" }}>📲 How to Install Gradient</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ color: "#333" }}>
             🔹 <strong>Chrome (Android & Desktop):</strong><br />
             &nbsp;&nbsp;&nbsp;- Tap the three dots (⋮) in the top-right<br />
             &nbsp;&nbsp;&nbsp;- Select 'Install App'<br /><br />
@@ -34,7 +55,13 @@ const InstallPWA: React.FC = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button 
+            onClick={handleClose} 
+            sx={{ 
+              color: "#5500aa",
+              fontWeight: 500
+            }}
+          >
             Close
           </Button>
         </DialogActions>

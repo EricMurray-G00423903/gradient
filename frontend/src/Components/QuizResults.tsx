@@ -39,50 +39,81 @@ const QuizResults: React.FC<QuizResultsProps> = ({ module, userAnswers, question
     .map(([topic]) => topic);
 
   return (
-    <Box sx={{ textAlign: "center", mt: 4, maxWidth: "600px", mx: "auto", p: 3, borderRadius: 3, bgcolor: "#1e1e1e", color: "white", boxShadow: 3 }}>
-      <Typography variant="h4" color="primary">
+    <Box sx={{ 
+      textAlign: "center", 
+      mt: 4, 
+      maxWidth: "600px", 
+      mx: "auto", 
+      p: 4, 
+      borderRadius: 3, 
+      bgcolor: "#ffffff", 
+      color: "#333333", 
+      boxShadow: "0 8px 24px rgba(85, 0, 170, 0.1)" 
+    }}>
+      <Typography variant="h4" color="#5500aa" fontWeight="bold">
         Quiz Completed!
       </Typography>
       <Typography variant="h6" sx={{ mt: 2 }}>
-        You scored <strong>{correctAnswers}</strong> out of <strong>{totalQuestions}</strong>!
+        You scored <strong style={{ color: "#5500aa" }}>{correctAnswers}</strong> out of <strong>{totalQuestions}</strong>!
       </Typography>
 
-      <Divider sx={{ my: 3, bgcolor: "#b39ddb" }} />
+      <Divider sx={{ my: 3, bgcolor: "#ddaaff" }} />
 
       <Box>
-        <Typography variant="h6" sx={{ mb: 1, color: "#4caf50" }}>💪 Strong Topics</Typography>
+        <Typography variant="h6" sx={{ mb: 1, color: "#4caf50", fontWeight: "600" }}>💪 Strong Topics</Typography>
         {strongTopics.length > 0 ? (
           <List>
             {strongTopics.map((topic) => (
-              <ListItem key={topic} sx={{ bgcolor: "#2e7d32", borderRadius: 1, mb: 1 }}>
-                <ListItemText primary={topic} sx={{ color: "white", textAlign: "center" }} />
+              <ListItem key={topic} sx={{ 
+                bgcolor: "#f0faf0", 
+                borderRadius: 1, 
+                mb: 1,
+                border: "1px solid #4caf50"
+              }}>
+                <ListItemText primary={topic} sx={{ color: "#333", textAlign: "center" }} />
               </ListItem>
             ))}
           </List>
         ) : (
-          <Typography sx={{ color: "#ffeb3b" }}>No strong topics yet. Keep practicing!</Typography>
+          <Typography sx={{ color: "#f57c00" }}>No strong topics yet. Keep practicing!</Typography>
         )}
       </Box>
 
-      <Divider sx={{ my: 3, bgcolor: "#b39ddb" }} />
+      <Divider sx={{ my: 3, bgcolor: "#ddaaff" }} />
 
       <Box>
-        <Typography variant="h6" sx={{ mb: 1, color: "#ff9800" }}>⚠️ Weak Topics</Typography>
+        <Typography variant="h6" sx={{ mb: 1, color: "#f57c00", fontWeight: "600" }}>⚠️ Weak Topics</Typography>
         {weakTopics.length > 0 ? (
           <List>
             {weakTopics.map((topic) => (
-              <ListItem key={topic} sx={{ bgcolor: "#b71c1c", borderRadius: 1, mb: 1 }}>
-                <ListItemText primary={topic} sx={{ color: "white", textAlign: "center" }} />
+              <ListItem key={topic} sx={{ 
+                bgcolor: "#fff5f0", 
+                borderRadius: 1, 
+                mb: 1,
+                border: "1px solid #f57c00"
+              }}>
+                <ListItemText primary={topic} sx={{ color: "#333", textAlign: "center" }} />
               </ListItem>
             ))}
           </List>
         ) : (
-          <Typography sx={{ color: "#ffeb3b" }}>No weak topics detected. Great job!</Typography>
+          <Typography sx={{ color: "#4caf50" }}>No weak topics detected. Great job!</Typography>
         )}
       </Box>
 
-      <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
-        <Button variant="contained" color="secondary" onClick={() => window.location.href = "/modules"} sx={{ fontWeight: "bold", fontSize: "16px" }}>
+      <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={() => window.location.href = "/modules"} 
+          sx={{ 
+            fontWeight: "bold", 
+            fontSize: "16px", 
+            px: 4, 
+            py: 1.5,
+            borderRadius: "8px" 
+          }}
+        >
           📚 Back to Modules
         </Button>
       </Box>

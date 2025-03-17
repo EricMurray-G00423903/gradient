@@ -110,24 +110,39 @@ const Projects = () => {
 
   return (
     <Container maxWidth="md">
-      <Typography variant="h4" sx={{ mt: 4, mb: 2 }}>🚀 Projects</Typography>
+      <Typography variant="h4" sx={{ mt: 4, mb: 2, color: "#5500aa", fontWeight: "bold" }}>🚀 Projects</Typography>
 
       {loading ? (
-        <CircularProgress />
+        <CircularProgress sx={{ color: "#5500aa" }} />
       ) : (
         <List>
           {modules.length > 0 ? (
             modules.map((module) => (
               <React.Fragment key={module.id}>
-                <Card sx={{ mb: 2, backgroundColor: "#1e1e1e", borderRadius: "8px" }}>
+                <Card sx={{ 
+                  mb: 2, 
+                  backgroundColor: "#ffffff", 
+                  borderRadius: "12px",
+                  boxShadow: '0 4px 12px rgba(85, 0, 170, 0.1)',
+                }}>
                   <CardContent>
                     <ListItem 
                       component="div"
                       onClick={() => toggleExpand(module.id)}
                       sx={{ cursor: "pointer" }}
                     >
-                      <ListItemText primary={module.name} secondary={`Proficiency: ${module.proficiency || 0}%`} />
-                      {expandedModule === module.id ? <ExpandLess /> : <ExpandMore />}
+                      <ListItemText 
+                        primary={
+                          <Typography variant="h6" sx={{ color: "#5500aa" }}>
+                            {module.name}
+                          </Typography>
+                        }
+                        secondary={`Proficiency: ${module.proficiency || 0}%`} 
+                      />
+                      {expandedModule === module.id ? 
+                        <ExpandLess sx={{ color: "#5500aa" }} /> : 
+                        <ExpandMore sx={{ color: "#5500aa" }} />
+                      }
                     </ListItem>
                     
                     <Collapse in={expandedModule === module.id} timeout="auto" unmountOnExit>
@@ -145,17 +160,24 @@ const Projects = () => {
               </React.Fragment>
             ))
           ) : (
-            <Typography>No modules found. Add a module first!</Typography>
+            <Typography color="textSecondary">No modules found. Add a module first!</Typography>
           )}
         </List>
       )}
 
       {/* Selected Module & Generate Project Button */}
       {selectedModule && (
-        <Card sx={{ mt: 4, backgroundColor: "#2a2a2a", borderRadius: "8px" }}>
+        <Card sx={{ 
+          mt: 4, 
+          backgroundColor: "#f8f5ff", 
+          borderRadius: "12px",
+          boxShadow: '0 4px 12px rgba(85, 0, 170, 0.1)',
+        }}>
           <CardContent>
-            <Typography variant="h5">{selectedModule.name} - AI Project Idea</Typography>
-            <Typography variant="body1" sx={{ mt: 1 }}>
+            <Typography variant="h5" sx={{ color: "#5500aa" }}>
+              {selectedModule.name} - AI Project Idea
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 1, color: "text.secondary" }}>
               Proficiency Level: {selectedModule.proficiency || 0}%
             </Typography>
             <Button
@@ -168,16 +190,21 @@ const Projects = () => {
               {generating ? "Generating..." : "Generate Project"}
             </Button>
 
-            {generating && <CircularProgress sx={{ mt: 2 }} />}
+            {generating && <CircularProgress sx={{ mt: 2, color: "#5500aa" }} />}
           </CardContent>
         </Card>
       )}
 
       {/* AI-Generated Project Description */}
       {projectDescription && (
-        <Card sx={{ mt: 4, backgroundColor: "#2a2a2a", borderRadius: "8px" }}>
+        <Card sx={{ 
+          mt: 4, 
+          backgroundColor: "#f8f5ff", 
+          borderRadius: "12px",
+          boxShadow: '0 4px 12px rgba(85, 0, 170, 0.1)',
+        }}>
           <CardContent>
-            <Typography variant="h5">💡 Project Idea</Typography>
+            <Typography variant="h5" sx={{ color: "#5500aa" }}>💡 Project Idea</Typography>
             <Typography variant="body1" sx={{ mt: 1 }}>{projectDescription}</Typography>
           </CardContent>
         </Card>

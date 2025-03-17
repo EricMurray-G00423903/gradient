@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { Container, Typography, TextField, Button, Box, List, Snackbar } from "@mui/material";
+import { 
+  Container, Typography, TextField, Button, Box, List, Snackbar,
+  Paper
+} from "@mui/material";
 import { getUserCourseAndModules, setUserCourse, addModule } from "../Utils/FirestoreService";
 import ModuleCard from "../Components/ModuleCard";
 import { getAuth } from "firebase/auth";
@@ -116,33 +119,58 @@ const Modules = () => {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4, textAlign: "center" }}>
-      <Typography variant="h4" color="primary" gutterBottom>
+      <Typography variant="h4" color="#5500aa" fontWeight="bold" gutterBottom>
         {userName ? `Welcome, ${userName}!` : "Welcome Back!"}
       </Typography>
 
       {!isCourseSet ? (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" color="secondary">Enter Your Course</Typography>
+        <Paper sx={{ 
+          mt: 3, 
+          p: 3, 
+          borderRadius: '12px', 
+          boxShadow: '0 4px 16px rgba(85, 0, 170, 0.1)',
+          backgroundColor: "#ffffff",
+        }}>
+          <Typography variant="h6" color="#ddaaff">Enter Your Course</Typography>
           <TextField
             fullWidth
             variant="outlined"
             label="Course Name"
             value={course}
             onChange={(e) => setCourse(e.target.value)}
-            sx={{ mt: 2 }}
+            sx={{ 
+              mt: 2,
+              '& .MuiOutlinedInput-root': {
+                '&.Mui-focused fieldset': {
+                  borderColor: '#5500aa',
+                },
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#5500aa',
+              },
+            }}
             onKeyDown={(e) => e.key === "Enter" && handleSetCourse()}
           />
-          <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleSetCourse}>
+          <Button 
+            variant="contained" 
+            sx={{ 
+              mt: 2, 
+              bgcolor: "#5500aa", 
+              '&:hover': { bgcolor: "#7722cc" },
+              borderRadius: '8px',
+            }} 
+            onClick={handleSetCourse}
+          >
             Save Course
           </Button>
-        </Box>
+        </Paper>
       ) : (
         <Box sx={{ mt: 3 }}>
-          <Typography variant="h5" color="primary">{course}</Typography>
-          <Typography variant="h6" sx={{ mt: 2 }}>Your Modules</Typography>
+          <Typography variant="h5" sx={{ color: "#5500aa", fontWeight: "bold" }}>{course}</Typography>
+          <Typography variant="h6" sx={{ mt: 2, color: "#666" }}>Your Modules</Typography>
 
           {modules.length === 0 ? (
-            <Typography color="textSecondary">No modules added yet.</Typography>
+            <Typography color="text.secondary" sx={{ mt: 2 }}>No modules added yet.</Typography>
           ) : (
             <List sx={{ mt: 2 }}>
               {modules.map((module) => (
@@ -152,13 +180,20 @@ const Modules = () => {
                   name={module.name} 
                   proficiency={module.proficiency} 
                   hasBeenTested={module.hasBeenTested}
-                  ready={module.ready} // Pass ready flag to ModuleCard; it should disable navigation if not ready.
+                  ready={module.ready}
                 />
               ))}
             </List>
           )}
 
-          <Box sx={{ mt: 2 }}>
+          <Paper sx={{ 
+            mt: 4, 
+            p: 3, 
+            borderRadius: '12px', 
+            boxShadow: '0 4px 16px rgba(85, 0, 170, 0.1)',
+            backgroundColor: "#ffffff",
+          }}>
+            <Typography variant="h6" sx={{ color: "#5500aa", mb: 2 }}>Add New Module</Typography>
             <TextField
               fullWidth
               variant="outlined"
@@ -166,11 +201,33 @@ const Modules = () => {
               value={newModule}
               onChange={(e) => setNewModule(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddModule()}
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#5500aa',
+                  },
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#5500aa',
+                },
+              }}
             />
-            <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 2 }}>
-              <Button variant="contained" color="secondary" onClick={handleAddModule}>Add Module</Button>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <Button 
+                variant="contained" 
+                sx={{ 
+                  bgcolor: "#5500aa", 
+                  '&:hover': { bgcolor: "#7722cc" },
+                  borderRadius: '8px',
+                  px: 4,
+                  py: 1,
+                }} 
+                onClick={handleAddModule}
+              >
+                Add Module
+              </Button>
             </Box>
-          </Box>
+          </Paper>
         </Box>
       )}
 
@@ -180,6 +237,11 @@ const Modules = () => {
         autoHideDuration={3000}
         onClose={() => setModuleSnackbarOpen(false)}
         message={moduleSnackbarMessage}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            backgroundColor: '#5500aa',
+          }
+        }}
       />
     </Container>
   );
