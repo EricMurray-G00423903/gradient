@@ -12,6 +12,7 @@ import Settings from "./Pages/Settings";
 import BottomNav from "./Components/BottomNav";
 import Profile from "./Pages/Profile";
 import Quiz from "./Pages/Quiz";
+import Home from "./Pages/Home";
 import "./App.css";
 
 // Modern theme with bright purple highlights from the logo
@@ -112,7 +113,7 @@ function App() {
         <div>
           <Routes>
             {/* Show Landing Page (Login & Signup) only if the user is NOT logged in */}
-            <Route path="/" element={user ? <Navigate to="/modules" /> : <Landing />} />
+            <Route path="/" element={user ? <Home /> : <Landing />} />
 
             {/* Protected Routes: Only allow access if the user is authenticated */}
             <Route path="/modules" element={user ? <Modules /> : <Navigate to="/" />} />
