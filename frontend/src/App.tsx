@@ -1,9 +1,9 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import { ThemeProvider, createTheme, CssBaseline, CircularProgress, Box, Fade } from "@mui/material";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "./firebase";  // Ensure Firebase is imported
-import Landing from "./Pages/Landing";  // Now handles login & signup
+import { auth } from "./firebase";
+import Landing from "./Pages/Landing";
 import Modules from "./Pages/Modules";
 import ModuleDetails from "./Pages/ModuleDetails";
 import StudyPlanner from "./Pages/StudyPlanner";
@@ -12,9 +12,9 @@ import Settings from "./Pages/Settings";
 import BottomNav from "./Components/BottomNav";
 import Profile from "./Pages/Profile";
 import Quiz from "./Pages/Quiz";
-import "./App.css";  // ✅ Import global styles
+import "./App.css";
 
-// Creating a dark theme with purple highlights
+// Dark theme with purple highlights
 const theme = createTheme({
   palette: {
     mode: "dark",
@@ -34,7 +34,20 @@ const theme = createTheme({
 function App() {
   const [user, loading] = useAuthState(auth);
 
-  if (loading) return <div>Loading...</div>; // Display loading state while checking auth
+  if (loading) {
+    return (
+      <Fade in={loading} timeout={{ enter: 500, exit: 500 }}>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="100vh"
+        >
+          <CircularProgress />
+        </Box>
+      </Fade>
+    );
+  } // Display loading spinner with fade effect while checking auth
 
   return (
     <ThemeProvider theme={theme}>

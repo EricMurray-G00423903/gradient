@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, IconButton, TextField, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -20,10 +20,20 @@ const slides = [
   { title: "Build Your Portfolio", description: "Showcase your work with an AI-generated portfolio." },
 ];
 
+
+
+
 const Landing = () => {
   const [screen, setScreen] = useState<"landing" | "login" | "signup">("landing");
   const [form, setForm] = useState({ name: "", course: "", email: "", password: "" });
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden"; // Disable scrolling
+    return () => {
+      document.body.style.overflow = "auto"; // Restore scrolling when unmounting
+    };
+  }, []);
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => 
     setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -59,33 +69,22 @@ const Landing = () => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-  
-      if (!user) throw new Error("Google sign-in failed.");
-  
-      // Check if email is already in use
+
+      // Check if user exists in Firestore
       const userRef = doc(firestore, "users", user.uid);
       const userSnap = await getDoc(userRef);
-  
+
       if (!userSnap.exists()) {
-        // If user is new, create Firestore record
         await setDoc(userRef, {
           name: user.displayName || "",
           email: user.email,
           course: "",
         });
-      } else {
-        console.log("User already exists, logging in...");
       }
-  
     } catch (error: any) {
-      if (error.code === "auth/account-exists-with-different-credential") {
-        alert("An account with this email already exists. Try logging in with your email and password.");
-      } else {
-        alert("Google Sign-In Error: " + error.message);
-      }
+      alert("Google Sign-In Error: " + error.message);
     }
   };
-  
 
   return (
     <Box
@@ -143,15 +142,63 @@ const Landing = () => {
             <ArrowBackIcon fontSize="large" />
             </IconButton>
 
+            <Box
+              sx={{
+                backgroundColor: "rgba(255, 255, 255, 0.15)", 
+                backdropFilter: "blur(10px)",
+                padding: "40px",
+                borderRadius: "15px",
+                width: "90%",
+                maxWidth: "400px",
+                boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
+              }}
+            >
             <Typography variant="h4" fontWeight="bold">Log In</Typography>
             <form onSubmit={handleSubmit}>
             <TextField label="Email" name="email" type="email" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
             <TextField label="Password" name="password" type="password" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
             <Button type="submit" variant="contained" color="primary" fullWidth sx={{ py: 1.5 }}>Log In</Button>
             </form>
-            <Button variant="outlined" startIcon={<GoogleIcon />} fullWidth sx={{ mt: 2, py: 1.5 }} onClick={handleGoogleSignIn}>Continue with Google</Button>
-            <Typography variant="body2" sx={{ mt: 2 }}>Don't have an account? <Button onClick={() => setScreen("signup")}>Sign Up</Button></Typography>
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <Button
+                variant="outlined"
+                startIcon={<GoogleIcon />}
+                sx={{
+                  mt: 2,
+                  py: 0.8, // Smaller padding
+                  px: 2, // Less horizontal padding
+                  maxWidth: "280px", // Smaller box width
+                  backgroundColor: "white", 
+                  color: "#a777e3", 
+                  borderColor: "#a777e3",
+                  borderRadius: "8px", // Softer rounded edges
+                  fontSize: "0.85rem", // Slightly smaller text
+                  fontWeight: "600",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: "#f0e6ff", 
+                    borderColor: "#915fd1",
+                  },
+                }}
+                onClick={handleGoogleSignIn}
+              >
+                Continue with Google
+              </Button>
+            </Box>
+            <Typography variant="body2" sx={{ mt: 2 }}>Don't have an account? 
+            <Button onClick={() => setScreen("signup")}     
+              sx={{
+              textTransform: "uppercase",
+              color: "white", // Ensures contrast
+              fontWeight: "bold",
+              "&:hover": {
+                backgroundColor: "#f0e6ff", 
+                borderColor: "#915fd1",
+              }}}
+              >Sign Up</Button></Typography>
+          </Box>
         </motion.div>
+          
     )}
 
     {/* SIGNUP SCREEN */}
@@ -162,7 +209,17 @@ const Landing = () => {
             <IconButton onClick={() => setScreen("login")} sx={{ position: "absolute", top: 20, left: 20, color: "white" }}>
             <ArrowBackIcon fontSize="large" />
             </IconButton>
-
+            <Box
+              sx={{
+                backgroundColor: "rgba(255, 255, 255, 0.15)", 
+                backdropFilter: "blur(10px)",
+                padding: "40px",
+                borderRadius: "15px",
+                width: "90%",
+                maxWidth: "400px",
+                boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
+              }}
+            >
             <Typography variant="h4" fontWeight="bold">Sign Up</Typography>
             <form onSubmit={handleSubmit}>
             <TextField label="Full Name" name="name" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
@@ -171,8 +228,9 @@ const Landing = () => {
             <TextField label="Password" name="password" type="password" fullWidth onChange={handleChange} required sx={{ mb: 2 }} />
             <Button type="submit" variant="contained" color="primary" fullWidth sx={{ py: 1.5 }}>Sign Up</Button>
             </form>
+          </Box>
         </motion.div>
-    )}
+        )}
     </Box>
   );
 };
