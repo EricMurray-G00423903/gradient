@@ -30,6 +30,9 @@ const BottomNav: React.FC = () => {
         position: "fixed",
         bottom: 0,
         bgcolor: "background.paper", // Use theme's paper background
+        paddingBottom: "env(safe-area-inset-bottom, 16px)", // Uses iOS safe area if available, or 16px as fallback
+        marginBottom: 0,
+        zIndex: 1000, // Ensure it stays on top of other content
       }}
     >
       <BottomNavigationAction
