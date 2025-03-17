@@ -20,9 +20,6 @@ const slides = [
   { title: "Build Your Portfolio", description: "Showcase your work with an AI-generated portfolio." },
 ];
 
-
-
-
 const Landing = () => {
   const [screen, setScreen] = useState<"landing" | "login" | "signup">("landing");
   const [form, setForm] = useState({ name: "", course: "", email: "", password: "" });
@@ -95,7 +92,7 @@ const Landing = () => {
         justifyContent: "center",
         minHeight: "100vh",
         textAlign: "center",
-        background: "linear-gradient(135deg, #6e8efb, #a777e3)",
+        background: "linear-gradient(135deg, #ddaaff, #5500aa)", // Updated gradient using logo colors
         color: "white",
         padding: "1.5rem",
       }}

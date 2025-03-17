@@ -152,19 +152,27 @@ const ModuleDetails = () => {
     }
   };
 
-  if (isLoading) return <Typography>Loading...</Typography>;
+  if (isLoading) return (
+    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "80vh" }}>
+      <CircularProgress sx={{ color: "#5500aa" }} />
+    </Box>
+  );
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Typography variant="h4" color="primary" align="center" gutterBottom>
+      <Typography variant="h4" color="#5500aa" align="center" fontWeight="bold" gutterBottom>
         {moduleName}
       </Typography>
 
-      <Card>
+      <Card sx={{
+        borderRadius: '12px',
+        boxShadow: '0 4px 16px rgba(85, 0, 170, 0.1)',
+        backgroundColor: "#ffffff",
+      }}>
         <CardContent>
           <Box display="flex" alignItems="center" gap={1}>
-            <DescriptionIcon color="primary" />
-            <Typography variant="h6">Module Description</Typography>
+            <DescriptionIcon sx={{ color: "#5500aa" }} />
+            <Typography variant="h6" sx={{ color: "#5500aa" }}>Module Description</Typography>
           </Box>
           <TextField
             fullWidth
@@ -173,7 +181,15 @@ const ModuleDetails = () => {
             placeholder="Provide a detailed module description..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            sx={{ mt: 1 }}
+            sx={{ 
+              mt: 1,
+              '& .MuiOutlinedInput-root': {
+                '&.Mui-focused fieldset': {
+                  borderColor: '#5500aa',
+                },
+              },
+            }}
+            minRows={4}
           />
         </CardContent>
       </Card>
@@ -182,7 +198,11 @@ const ModuleDetails = () => {
       <Box sx={{ mt: 4, display: "flex", gap: 2, justifyContent: "center" }}>
         <Button 
           variant="contained" 
-          color="success" 
+          sx={{ 
+            bgcolor: '#4caf50', 
+            '&:hover': { bgcolor: '#388e3c' },
+            borderRadius: '8px',
+          }} 
           startIcon={<CheckCircleIcon />} 
           onClick={handleSave}
         >
@@ -191,21 +211,33 @@ const ModuleDetails = () => {
         
         <Button 
           variant="outlined" 
-          color="error" 
+          sx={{ 
+            color: '#f44336',
+            borderColor: '#f44336',
+            '&:hover': { 
+              borderColor: '#d32f2f',
+              backgroundColor: 'rgba(244,67,54,0.04)'
+            },
+            borderRadius: '8px',
+          }}
           startIcon={<DoNotDisturbIcon />} 
           onClick={() => navigate("/modules")}
         >
           Cancel
         </Button>
         
-        {/* New Delete Button */}
+        {/* Delete Button */}
         <Button 
-                  variant="contained" 
-                  color="error" 
-                  onClick={handleOpenDeleteDialog}
-                >
-                  Delete Module
-                </Button>
+          variant="contained" 
+          sx={{ 
+            bgcolor: '#f44336', 
+            '&:hover': { bgcolor: '#d32f2f' },
+            borderRadius: '8px',
+          }}
+          onClick={handleOpenDeleteDialog}
+        >
+          Delete Module
+        </Button>
       </Box>
 
       {/* Updated quiz button logic */}
@@ -217,6 +249,12 @@ const ModuleDetails = () => {
             size="large" 
             startIcon={<QuizIcon />} 
             onClick={() => navigate(`/quiz?id=${moduleId}`)}
+            sx={{ 
+              borderRadius: '8px',
+              padding: '12px 24px',
+              bgcolor: "#5500aa",
+              '&:hover': { bgcolor: "#7722cc" },
+            }}
           >
             Take Proficiency Quiz
           </Button>
@@ -231,8 +269,47 @@ const ModuleDetails = () => {
             size="large" 
             startIcon={<QuizIcon />} 
             onClick={() => navigate(`/quiz?id=${moduleId}`)}
+            sx={{ 
+              borderRadius: '8px',
+              padding: '12px 24px',
+              bgcolor: "#5500aa",
+              '&:hover': { bgcolor: "#7722cc" },
+            }}
           >
             Retake Quiz
+          </Button>
+        </Box>
+      )}
+      {/* New condition: Show message when user has been tested but has incomplete study tasks */}
+      {description && hasBeenTested && studyTasks.length > 0 && 
+       !studyTasks.every((task: any) => task.completed) && (
+        <Box sx={{ 
+          mt: 4, 
+          textAlign: "center", 
+          p: 2, 
+          border: '1px dashed #ddaaff', 
+          borderRadius: 2,
+          backgroundColor: '#f8f5ff'
+        }}>
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            Complete all your study tasks before retaking the quiz
+          </Typography>
+          <Button 
+            variant="outlined" 
+            sx={{ 
+              mt: 1,
+              color: "#5500aa",
+              borderColor: "#5500aa",
+              '&:hover': { 
+                borderColor: "#7722cc",
+                backgroundColor: 'rgba(85,0,170,0.04)'
+              },
+              borderRadius: '8px',
+            }} 
+            size="medium" 
+            onClick={() => navigate(`/study-planner?id=${moduleId}`)}
+          >
+            Go to Study Planner
           </Button>
         </Box>
       )}
@@ -253,7 +330,7 @@ const ModuleDetails = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>Confirm Module Deletion</DialogTitle>
+        <DialogTitle sx={{ color: "#5500aa" }}>Confirm Module Deletion</DialogTitle>
         <DialogContent>
           <Typography>
             To confirm deletion, please type the module name: <strong>{moduleName}</strong>
@@ -265,6 +342,13 @@ const ModuleDetails = () => {
             fullWidth
             value={deleteConfirmInput}
             onChange={(e) => setDeleteConfirmInput(e.target.value)}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '&.Mui-focused fieldset': {
+                  borderColor: '#5500aa',
+                },
+              },
+            }}
           />
         </DialogContent>
         <DialogActions>
@@ -272,7 +356,9 @@ const ModuleDetails = () => {
           <Button 
             onClick={handleConfirmDelete} 
             disabled={deleteConfirmInput !== moduleName}
-            color="error"
+            sx={{
+              color: "#f44336"
+            }}
           >
             Delete
           </Button>
