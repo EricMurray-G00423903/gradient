@@ -10,8 +10,18 @@ const QuizProgress: React.FC<QuizProgressProps> = ({ currentQuestion, totalQuest
   const progress = ((currentQuestion) / totalQuestions) * 100;
   
   return (
-    <Box sx={{ width: "100%", textAlign: "center", mt: 2, p: 1, bgcolor: "#1e1e1e", borderRadius: 2 }}>
-      <Typography variant="body2" sx={{ color: "white", fontWeight: "bold" }}>
+    <Box sx={{ 
+      width: "100%", 
+      textAlign: "center", 
+      mt: 2, 
+      p: 2, 
+      bgcolor: "white", 
+      borderRadius: 2,
+      boxShadow: "0 2px 10px rgba(85, 0, 170, 0.1)",
+      maxWidth: "700px",
+      margin: "16px auto"
+    }}>
+      <Typography variant="body1" sx={{ fontWeight: "bold", color: "#5500aa" }}>
         Question {currentQuestion} of {totalQuestions}
       </Typography>
       <LinearProgress
@@ -21,9 +31,9 @@ const QuizProgress: React.FC<QuizProgressProps> = ({ currentQuestion, totalQuest
           mt: 1,
           height: 10,
           borderRadius: 5,
-          bgcolor: "grey.800",
+          bgcolor: "#f0e6ff",
           "& .MuiLinearProgress-bar": {
-            bgcolor: "#b39ddb",
+            bgcolor: "#5500aa",
           },
         }}
       />

@@ -14,19 +14,75 @@ import Profile from "./Pages/Profile";
 import Quiz from "./Pages/Quiz";
 import "./App.css";
 
-// Dark theme with purple highlights
+// Modern theme with bright purple highlights from the logo
 const theme = createTheme({
   palette: {
-    mode: "dark",
+    mode: "light",
     primary: {
-      main: "#bb86fc",
+      main: "#5500aa", // Dark purple from logo
+      light: "#7733bb",
+      dark: "#440088",
+      contrastText: "#ffffff",
     },
     secondary: {
-      main: "#03dac6",
+      main: "#ddaaff", // Light purple from logo
+      light: "#eeccff",
+      dark: "#bb88dd",
+      contrastText: "#5500aa",
     },
     background: {
-      default: "#121212",
-      paper: "#1e1e1e",
+      default: "#f8f5ff", // Very light purple tint for background
+      paper: "#ffffff",    // White for cards and panels
+    },
+    text: {
+      primary: "#333333",
+      secondary: "#666666",
+    },
+    error: {
+      main: "#d32f2f",
+    },
+    warning: {
+      main: "#ffa000",
+    },
+    info: {
+      main: "#0288d1",
+    },
+    success: {
+      main: "#388e3c",
+    },
+  },
+  typography: {
+    fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
+    h4: {
+      fontWeight: 600,
+    },
+    h5: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 600,
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: "none",
+          fontWeight: 500,
+        },
+        contained: {
+          boxShadow: "none",
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        },
+      },
     },
   },
 });

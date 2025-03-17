@@ -21,9 +21,16 @@ const formatFirestoreTimestamp = (timestamp: Timestamp | null) => {
 const QuizIntro: React.FC<QuizIntroProps> = ({ module, onStart, loading }) => {
   return (
     <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-      <Card sx={{ maxWidth: 400, p: 3, textAlign: "center", boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ 
+        maxWidth: 400, 
+        p: 3, 
+        textAlign: "center", 
+        boxShadow: '0 8px 24px rgba(85, 0, 170, 0.15)', 
+        borderRadius: 3,
+        background: '#ffffff',
+      }}>
         <CardContent>
-          <Typography variant="h5" fontWeight="bold" gutterBottom>
+          <Typography variant="h5" fontWeight="bold" color="#5500aa" gutterBottom>
             {module.name} Quiz
           </Typography>
           <Typography variant="body1" color="textSecondary" gutterBottom>
@@ -38,14 +45,21 @@ const QuizIntro: React.FC<QuizIntroProps> = ({ module, onStart, loading }) => {
           
           {loading ? (
             <Box mt={2} display="flex" justifyContent="center">
-              <CircularProgress color="secondary" />
+              <CircularProgress sx={{ color: "#5500aa" }} />
             </Box>
           ) : (
             <Button 
               variant="contained" 
               color="primary" 
               onClick={onStart} 
-              sx={{ mt: 2, px: 4, py: 1, fontSize: "16px", fontWeight: "bold" }}
+              sx={{ 
+                mt: 2, 
+                px: 4, 
+                py: 1, 
+                fontSize: "16px", 
+                fontWeight: "bold",
+                borderRadius: '8px',
+              }}
             >
               Start Quiz
             </Button>

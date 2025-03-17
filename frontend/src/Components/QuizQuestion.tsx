@@ -1,4 +1,5 @@
 import React from "react";
+import { Box, Typography, Button } from "@mui/material";
 
 interface Question {
   question: string;
@@ -10,8 +11,8 @@ interface Question {
 interface QuizQuestionProps {
   question: Question;
   questionIndex: number;
-  userAnswer: string; // ✅ Accepts only the current question's answer
-  onAnswer: (selectedAnswer: string) => void; // ✅ No need to pass questionIndex
+  userAnswer: string;
+  onAnswer: (selectedAnswer: string) => void;
 }
 
 const QuizQuestion: React.FC<QuizQuestionProps> = ({
@@ -21,32 +22,56 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
   onAnswer,
 }) => {
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h2>Question {questionIndex + 1}</h2>
-      <p>{question.question}</p>
+    <Box sx={{ 
+      textAlign: "center", 
+      padding: "20px", 
+      backgroundColor: "white", 
+      borderRadius: "16px", 
+      boxShadow: "0 4px 20px rgba(85, 0, 170, 0.1)",
+      maxWidth: "700px",
+      margin: "0 auto"
+    }}>
+      <Typography variant="h5" sx={{ color: "#5500aa", mb: 2, fontWeight: "600" }}>
+        Question {questionIndex + 1}
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 4, fontSize: "18px" }}>
+        {question.question}
+      </Typography>
 
-      <ul style={{ listStyleType: "none", padding: 0 }}>
+      <Box sx={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        gap: "12px",
+        maxWidth: "500px",
+        margin: "0 auto" 
+      }}>
         {Object.entries(question.answers).map(([key, value]) => (
-          <li key={key} style={{ margin: "10px 0" }}>
-            <button
-              onClick={() => onAnswer(key)}
-              style={{
-                padding: "10px 15px",
-                width: "100%",
-                backgroundColor: userAnswer === key ? "#4caf50" : "#b39ddb",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-            >
+          <Button
+            key={key}
+            onClick={() => onAnswer(key)}
+            variant={userAnswer === key ? "contained" : "outlined"}
+            sx={{
+              p: 2,
+              textAlign: "left",
+              justifyContent: "flex-start",
+              borderRadius: "8px",
+              backgroundColor: userAnswer === key ? "#5500aa" : "transparent",
+              borderColor: "#ddaaff",
+              color: userAnswer === key ? "white" : "#5500aa",
+              "&:hover": {
+                backgroundColor: userAnswer === key ? "#5500aa" : "#f8f5ff",
+                borderColor: "#5500aa"
+              },
+              transition: "all 0.2s ease-in-out"
+            }}
+          >
+            <Typography sx={{ fontWeight: 500 }}>
               {key}: {value}
-            </button>
-          </li>
+            </Typography>
+          </Button>
         ))}
-      </ul>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

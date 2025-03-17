@@ -95,16 +95,21 @@ const StudyPlanner = () => {
 
   return (
     <Container maxWidth="md">
-      <Typography variant="h4" sx={{ mt: 4, mb: 2 }}>📚 Study Planner</Typography>
+      <Typography variant="h4" sx={{ mt: 4, mb: 2, color: "#5500aa", fontWeight: "bold" }}>📚 Study Planner</Typography>
 
       {loading ? (
-        <CircularProgress />
+        <CircularProgress sx={{ color: "#5500aa" }} />
       ) : (
         <List>
           {modules.length > 0 ? (
             modules.map((module) => (
               <React.Fragment key={module.id}>
-                <Card sx={{ mb: 2, backgroundColor: "#1e1e1e", borderRadius: "8px" }}>
+                <Card sx={{ 
+                  mb: 2, 
+                  backgroundColor: "#ffffff", 
+                  borderRadius: "12px",
+                  boxShadow: '0 4px 12px rgba(85, 0, 170, 0.1)',
+                }}>
                   <CardContent>
                     <ListItem 
                       component="div"
@@ -112,15 +117,21 @@ const StudyPlanner = () => {
                       sx={{ cursor: "pointer" }}
                     >
                       <ListItemText
-                        primary={module.name}
+                        primary={
+                          <Typography variant="h6" sx={{ color: "#5500aa" }}>
+                            {module.name}
+                          </Typography>
+                        }
                         secondary={
-                          module.studyTasks.length
-                            ? "You have study tasks for this module."
-                            : "Take a quiz to generate a study plan!"
+                          <Typography variant="body2" color="text.secondary">
+                            {module.studyTasks.length
+                              ? "You have study tasks for this module."
+                              : "Take a quiz to generate a study plan!"}
+                          </Typography>
                         }
                       />
                       {module.studyTasks.length ? (
-                        expandedModule === module.id ? <ExpandLess /> : <ExpandMore />
+                        expandedModule === module.id ? <ExpandLess sx={{ color: "#5500aa" }} /> : <ExpandMore sx={{ color: "#5500aa" }} />
                       ) : null}
                     </ListItem>
 
@@ -130,23 +141,31 @@ const StudyPlanner = () => {
                         {/* 🔥 Study Tasks (Checkable) */}
                         {module.studyTasks.length > 0 && (
                           <>
-                            <Typography sx={{ mt: 2, fontWeight: "bold" }}>📖 Study Tasks:</Typography>
+                            <Typography sx={{ mt: 2, fontWeight: "bold", color: "#5500aa" }}>📖 Study Tasks:</Typography>
                             {module.studyTasks.map((task: any, index: number) => (
                               <ListItem 
                                 key={index} 
                                 sx={{ 
                                   pl: 4, 
-                                  backgroundColor: "#2a2a2a", 
+                                  backgroundColor: "#f8f5ff", 
                                   borderRadius: "8px", 
                                   mb: 1,
-                                  color: "#fff"
                                 }}
                               >
                                 <Checkbox
                                   checked={task.completed || false}
                                   onChange={() => handleTaskCheck(module.id, index)}
+                                  sx={{
+                                    color: "#ddaaff",
+                                    '&.Mui-checked': {
+                                      color: "#5500aa",
+                                    },
+                                  }}
                                 />
-                                <ListItemText primary={task.description || "Unnamed Task"} />
+                                <ListItemText 
+                                  primary={task.description || "Unnamed Task"} 
+                                  sx={{ color: task.completed ? "#888" : "#333" }}
+                                />
                               </ListItem>
                             ))}
                           </>
@@ -155,14 +174,13 @@ const StudyPlanner = () => {
                         {/* 🔥 Exercise (Single String) */}
                         {module.exercise && (
                           <>
-                            <Typography sx={{ mt: 2, fontWeight: "bold" }}>📝 Exercise:</Typography>
+                            <Typography sx={{ mt: 2, fontWeight: "bold", color: "#5500aa" }}>📝 Exercise:</Typography>
                             <ListItem 
                               sx={{ 
                                 pl: 4, 
-                                backgroundColor: "#2a2a2a", 
+                                backgroundColor: "#f8f5ff", 
                                 borderRadius: "8px", 
                                 mb: 1,
-                                color: "#fff"
                               }}
                             >
                               <ListItemText primary={module.exercise} />
@@ -189,7 +207,7 @@ const StudyPlanner = () => {
               </React.Fragment>
             ))
           ) : (
-            <Typography>No modules found. Add a module and take a quiz to start planning!</Typography>
+            <Typography color="textSecondary">No modules found. Add a module and take a quiz to start planning!</Typography>
           )}
         </List>
       )}
