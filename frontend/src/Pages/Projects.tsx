@@ -13,7 +13,10 @@ import {
   CircularProgress,
   Card,
   CardContent,
-  MenuItem, Select, FormControl, InputLabel
+  MenuItem, Select, FormControl, InputLabel,
+  Link,
+  TextField,
+  LinearProgress
 } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { db } from "../firebase";
@@ -28,9 +31,11 @@ const Projects = () => {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [projectDescription, setProjectDescription] = useState<string | null>(null);
   const [techStack, setTechStack] = useState<string[]>([]);
-  const [todoList, setTodoList] = useState<string[]>([]);
-  const [instructions, setInstructions] = useState<string>("");
+  const [todoList, setTodoList] = useState<{ text: string; completed: boolean }[]>([]);
   const [generating, setGenerating] = useState<boolean>(false);
+  const [githubLink, setGithubLink] = useState<string>('');
+  const [tempGithubLink, setTempGithubLink] = useState<string>('');
+  const [completedTasks, setCompletedTasks] = useState<number>(0);
 
   useEffect(() => {
     const auth = getAuth();
@@ -78,7 +83,6 @@ const Projects = () => {
     setProjectDescription(null);
     setTechStack([]);
     setTodoList([]);
-    setInstructions("");
   };
 
   const generateProject = async () => {
@@ -89,14 +93,17 @@ const Projects = () => {
   
     const projectRef = doc(db, `users/${userId}/projects/${selectedModule.id}`);
     const projectSnap = await getDoc(projectRef);
+    
     if (projectSnap.exists()) {
-      alert("You already have a project in progress for this module.");
-      setProjectDescription(projectSnap.data().description); 
-      setTechStack(projectSnap.data().techStack || []);
-      setTodoList(projectSnap.data().todoList || []);
-      setInstructions(projectSnap.data().instructions || "");
+      // Load existing project data
+      const data = projectSnap.data();
+      setProjectDescription(data.description);
+      setTechStack(data.techStack || []);
+      setTodoList((data.todoList || []).map((task: any) => typeof task === 'string' ? { text: task, completed: false } : task));
+      setCompletedTasks((data.todoList || []).filter((task: { completed: any; }) => task.completed).length);
       return;
     }
+  
   
     setGenerating(true);
   
@@ -125,20 +132,13 @@ const Projects = () => {
       setProjectDescription(data.description);
       setTechStack(data.techStack || []);
       setTodoList(data.todoList || []);
-      setInstructions(data.instructions || "");
-
-      console.log("Frontend state set:");
-      console.log("Description:", data.description);
-      console.log("Tech Stack:", data.techStack);
-      console.log("To-Do:", data.todoList);
-      console.log("Instructions:", data.instructions);
+      setCompletedTasks(0);
         
       // ✅ Save to Firestore
       await setDoc(projectRef, {
         description: data.description,
         techStack: data.techStack || [],
         todoList: data.todoList || [],
-        instructions: data.instructions || "",
         createdAt: Date.now(),
       });
   
@@ -148,9 +148,13 @@ const Projects = () => {
   
     setGenerating(false);
   };
-  
 
-
+  const handleCheckboxChange = (index: number) => {
+    const newTodoList = [...todoList];
+    newTodoList[index].completed = !newTodoList[index].completed;
+    setTodoList(newTodoList);
+    setCompletedTasks(newTodoList.filter(task => task.completed).length);
+  };
 
   return (
     <Container maxWidth="md">
@@ -186,26 +190,43 @@ const Projects = () => {
           borderRadius: "12px",
           boxShadow: '0 4px 12px rgba(85, 0, 170, 0.1)',
         }}>
-          <CardContent>
-            <Typography variant="h5" sx={{ color: "#5500aa" }}>
-              {selectedModule.name} - Project Idea
+  <CardContent>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h5" sx={{ color: "#5500aa" }}>
+          {selectedModule.name} - Project Idea
+        </Typography>
+        {todoList.length > 0 && (
+          <Box sx={{ width: '200px' }}>
+            <LinearProgress
+              variant="determinate"
+              value={(completedTasks / todoList.length) * 100}
+              sx={{ height: 8, borderRadius: 4 }}
+            />
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {completedTasks} of {todoList.length} tasks completed
             </Typography>
-            <Typography variant="body1" sx={{ mt: 1, color: "text.secondary" }}>
-              Proficiency Level: {selectedModule.proficiency || 0}%
-            </Typography>
-            <Button
-              variant="contained"
-              color="secondary"
-              sx={{ mt: 2 }}
-              onClick={generateProject}
-              disabled={generating}
-            >
-              {generating ? "Generating..." : "Generate Project"}
-            </Button>
+          </Box>
+        )}
+      </Box>
+      <Typography variant="body1" sx={{ color: "text.secondary" }}>
+        Proficiency Level: {selectedModule.proficiency || 0}%
+      </Typography>
+      
+      {!projectDescription && (
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={{ mt: 2 }}
+          onClick={generateProject}
+          disabled={generating}
+        >
+          {generating ? "Generating..." : "Generate Project"}
+        </Button>
+      )}
 
-            {generating && <CircularProgress sx={{ mt: 2, color: "#5500aa" }} />}
-          </CardContent>
-        </Card>
+      {generating && <CircularProgress sx={{ mt: 2, color: "#5500aa" }} />}
+    </CardContent>
+  </Card>
       )}
 
       {/* AI-Generated Project Description */}
@@ -271,34 +292,53 @@ const Projects = () => {
           <List>
             {todoList.map((task, index) => (
               <ListItem key={index} disablePadding>
-                <Checkbox />
-                <ListItemText primary={task} />
+                <Checkbox
+                  checked={task.completed}
+                  onChange={() => handleCheckboxChange(index)}
+                />
+                <ListItemText primary={task.text} />
               </ListItem>
             ))}
           </List>
+          <LinearProgress
+            variant="determinate"
+            value={(completedTasks / todoList.length) * 100}
+            sx={{ mt: 2 }}
+          />
         </Box>
       )}
 
-      {/* 📘 Instructions */}
-      {instructions && (
-        <Box
-          sx={{
-            backgroundColor: "#f5f5f5",
-            borderRadius: "12px",
-            p: 2,
-            fontFamily: "monospace"
-          }}
-        >
-          <Typography variant="h6" sx={{ color: "#424242" }}>📘 Instructions</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>{instructions}</Typography>
-        </Box>
-      )}
-
+      {/* 🔗 GitHub Link */}
+      <Box
+        sx={{
+          backgroundColor: "#f3e5f5",
+          borderRadius: "12px",
+          p: 2,
+          mt: 3
+        }}
+      >
+        <Typography variant="h6" sx={{ color: "#8e24aa" }}>🔗 GitHub Repository</Typography>
+        {githubLink ? (
+          <Link href={githubLink} target="_blank" rel="noopener">
+            {githubLink}
+          </Link>
+        ) : (
+          <TextField
+            fullWidth
+            variant="outlined"
+            label="Paste your GitHub repo link"
+            value={tempGithubLink}
+            onChange={(e) => setTempGithubLink(e.target.value)}
+            onBlur={() => {
+              setGithubLink(tempGithubLink);
+            }}
+            sx={{ mt: 1 }}
+          />
+        )}
+      </Box>
     </CardContent>
   </Card>
 )}
-
-
   </Container>
   );
 };
