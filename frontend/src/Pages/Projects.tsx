@@ -36,6 +36,10 @@ const Projects = () => {
   const [githubLink, setGithubLink] = useState<string>('');
   const [tempGithubLink, setTempGithubLink] = useState<string>('');
   const [completedTasks, setCompletedTasks] = useState<number>(0);
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const [showConfirmComplete, setShowConfirmComplete] = useState(false);
+  
+
 
   useEffect(() => {
     const auth = getAuth();
@@ -76,14 +80,31 @@ const Projects = () => {
   const toggleExpand = (moduleId: string) => {
     setExpandedModule(expandedModule === moduleId ? null : moduleId);
   };
-
-  const selectModule = (module: any) => {
+  const selectModule = async (module: any) => {
     setSelectedModule(module);
-    setExpandedModule(null); // Close module list
+    setExpandedModule(null);
     setProjectDescription(null);
     setTechStack([]);
     setTodoList([]);
+    setGenerating(false);
+  
+    if (!userId) return;
+  
+    const projectRef = doc(db, `users/${userId}/projects/${module.id}`);
+    const projectSnap = await getDoc(projectRef);
+  
+    if (projectSnap.exists()) {
+      const data = projectSnap.data();
+      setProjectDescription(data.description);
+      setTechStack(data.techStack || []);
+      const list = (data.todoList || []).map((task: any) =>
+        typeof task === 'string' ? { text: task, completed: false } : task
+      );
+      setTodoList(list);
+      setCompletedTasks(list.filter((task: { completed: any; }) => task.completed).length);
+    }
   };
+  
 
   const generateProject = async () => {
     if (!selectedModule) {
@@ -94,15 +115,6 @@ const Projects = () => {
     const projectRef = doc(db, `users/${userId}/projects/${selectedModule.id}`);
     const projectSnap = await getDoc(projectRef);
     
-    if (projectSnap.exists()) {
-      // Load existing project data
-      const data = projectSnap.data();
-      setProjectDescription(data.description);
-      setTechStack(data.techStack || []);
-      setTodoList((data.todoList || []).map((task: any) => typeof task === 'string' ? { text: task, completed: false } : task));
-      setCompletedTasks((data.todoList || []).filter((task: { completed: any; }) => task.completed).length);
-      return;
-    }
   
   
     setGenerating(true);
@@ -154,9 +166,50 @@ const Projects = () => {
     newTodoList[index].completed = !newTodoList[index].completed;
     setTodoList(newTodoList);
     setCompletedTasks(newTodoList.filter(task => task.completed).length);
+
+    useEffect(() => {
+      const allChecked = todoList.length > 0 && todoList.every(task => task.completed);
+      if (allChecked && githubLink && !showConfirmComplete) {
+        setShowConfirmComplete(true);
+      }
+    }, [todoList, githubLink]);    
   };
 
+  const handleProjectComplete = async () => {
+    if (!userId || !selectedModule) return;
+  
+    const completedProject = {
+      moduleId: selectedModule.id,
+      moduleName: selectedModule.name,
+      description: projectDescription,
+      githubLink,
+      techStack,
+      todoList,
+      dateCompleted: new Date().toISOString(),
+    };
+  
+    const completedRef = doc(db, `users/${userId}/completedProjects/${selectedModule.id}`);
+    const projectRef = doc(db, `users/${userId}/projects/${selectedModule.id}`);
+  
+    await setDoc(completedRef, completedProject);
+    await setDoc(projectRef, {}); // or deleteDoc(projectRef)
+  
+    // Reset UI
+    setShowConfirmComplete(false);
+    setShowCompletionPopup(true);
+    setSelectedModule(null);
+    setProjectDescription(null);
+    setTechStack([]);
+    setTodoList([]);
+    setCompletedTasks(0);
+    setTempGithubLink('');
+    setGithubLink('');
+  };
+  
+
+
   return (
+    
     <Container maxWidth="md">
       <Typography variant="h4" sx={{ mt: 4, mb: 2, color: "#5500aa", fontWeight: "bold" }}>🚀 Projects</Typography>
 
@@ -329,9 +382,38 @@ const Projects = () => {
             label="Paste your GitHub repo link"
             value={tempGithubLink}
             onChange={(e) => setTempGithubLink(e.target.value)}
-            onBlur={() => {
-              setGithubLink(tempGithubLink);
+            onBlur={async () => {
+              if (tempGithubLink && !githubLink) {
+                setGithubLink(tempGithubLink);
+                setShowCompletionPopup(true);
+            
+                const completedProject = {
+                  moduleId: selectedModule.id,
+                  moduleName: selectedModule.name,
+                  description: projectDescription,
+                  githubLink: tempGithubLink,
+                  techStack,
+                  todoList,
+                  dateCompleted: new Date().toISOString(),
+                };
+            
+                const projectRef = doc(db, `users/${userId}/projects/${selectedModule.id}`);
+                const completedRef = doc(db, `users/${userId}/completedProjects/${selectedModule.id}`);
+            
+                // Save to completedProjects and delete from active
+                await setDoc(completedRef, completedProject);
+                await setDoc(projectRef, {}); // or use deleteDoc(projectRef) if you want it totally gone
+            
+                // Reset frontend state
+                setSelectedModule(null);
+                setProjectDescription(null);
+                setTechStack([]);
+                setTodoList([]);
+                setCompletedTasks(0);
+                setTempGithubLink('');
+              }
             }}
+            
             sx={{ mt: 1 }}
           />
         )}
@@ -339,6 +421,41 @@ const Projects = () => {
     </CardContent>
   </Card>
 )}
+{showConfirmComplete && (
+  <Card sx={{
+    position: "fixed",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "#fff3e0",
+    borderRadius: "12px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+    p: 2,
+    zIndex: 10
+  }}>
+    <Typography variant="h6" sx={{ color: "#ef6c00" }}>
+      ✅ All tasks complete!
+    </Typography>
+    <Typography variant="body2" sx={{ mt: 1 }}>
+      Do you want to officially mark this project as completed?
+    </Typography>
+    <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
+      <Button
+        variant="contained"
+        color="success"
+        onClick={handleProjectComplete}
+      >
+        Complete Project
+      </Button>
+      <Button
+        variant="outlined"
+        onClick={() => setShowConfirmComplete(false)}
+      >
+        Cancel
+      </Button>
+    </Box>
+  </Card>
+)}
+
   </Container>
   );
 };
