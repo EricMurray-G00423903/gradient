@@ -213,34 +213,37 @@ export const generateProject = onRequest(async (req, res) => {
 
     const { moduleName, proficiencyLevel } = req.body;
 
-    // Debug request payload
     console.log("Received request:", { moduleName, proficiencyLevel });
 
     if (!moduleName || proficiencyLevel === undefined) {
-      console.error("Missing required fields");
       res.status(400).json({ error: "Missing required fields (moduleName, proficiencyLevel)" });
       return;
     }
 
-    // Convert proficiency level to project difficulty
     let difficulty;
     if (proficiencyLevel >= 80) difficulty = "Advanced";
     else if (proficiencyLevel >= 50) difficulty = "Intermediate";
     else difficulty = "Beginner";
 
     const prompt = `
-      The user is learning **${moduleName}**.
-      Their proficiency level is **${proficiencyLevel}%**, which is considered **${difficulty}**.
-
-      **Task**:
-      - Suggest a project idea that is **${difficulty} difficulty**.
-      - Keep the project **simple for beginners, more complex for advanced users**.
-
-      **Response Format (JSON only, no markdown, no extra text)**:
-      {
-        "description": "A short project idea description."
-      }
-    `;
+    You are an expert AI assistant helping a student studying "${moduleName}" at a ${difficulty} level.
+    
+    🎯 Your task:
+    Generate a project idea appropriate for this difficulty level that helps the student apply what they've learned.
+    
+    🧠 Your response MUST be ONLY valid JSON and follow this **exact format**:
+    {
+      "description": "A short paragraph explaining the project goal and what the student will build.",
+      "techStack": ["A", "B", "C"], // A list of technologies or tools to use
+      "todoList": ["Step 1", "Step 2", "Step 3"], // A clear list of tasks to complete
+    }
+    
+    ⚠️ Important rules:
+    - DO NOT include markdown
+    - DO NOT explain or wrap the output
+    - RETURN ONLY the raw JSON object — nothing else
+    `.trim();
+    
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -256,16 +259,15 @@ export const generateProject = onRequest(async (req, res) => {
       return;
     }
 
-    // Clean response to ensure valid JSON
     projectData = projectData.replace(/^```json\s*/g, "").replace(/```$/g, "").trim();
     const parsedProject = JSON.parse(projectData);
 
     console.log("Successfully generated project:", parsedProject);
     res.status(200).json(parsedProject);
-
   } catch (error) {
     console.error("Error generating project:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
