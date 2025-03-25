@@ -236,7 +236,6 @@ export const generateProject = onRequest(async (req, res) => {
       "description": "A short paragraph explaining the project goal and what the student will build.",
       "techStack": ["A", "B", "C"], // A list of technologies or tools to use
       "todoList": ["Step 1", "Step 2", "Step 3"], // A clear list of tasks to complete
-      "instructions": "Detailed written instructions on how the student should approach building this project. Include tips or common pitfalls."
     }
     
     ⚠️ Important rules:
