@@ -56,6 +56,14 @@ const Projects = () => {
     return () => unsubscribe();
   }, []);
 
+  const isProjectReadyToComplete = () => {
+    const allTasksDone = todoList.length > 0 && todoList.every(task => task.completed);
+    const hasGithubLink = !!githubLink.trim();
+    return allTasksDone && hasGithubLink;
+  };
+  
+  
+
   const fetchModules = async (uid: string) => {
     setLoading(true);
     try {
@@ -143,7 +151,13 @@ const Projects = () => {
       // ✅ Set frontend state
       setProjectDescription(data.description);
       setTechStack(data.techStack || []);
-      setTodoList(data.todoList || []);
+      setTodoList(
+        (data.todoList || []).map((item: string) => ({
+          text: item,
+          completed: false
+        }))
+      );
+      
       setCompletedTasks(0);
         
       // ✅ Save to Firestore
@@ -166,14 +180,8 @@ const Projects = () => {
     newTodoList[index].completed = !newTodoList[index].completed;
     setTodoList(newTodoList);
     setCompletedTasks(newTodoList.filter(task => task.completed).length);
-
-    useEffect(() => {
-      const allChecked = todoList.length > 0 && todoList.every(task => task.completed);
-      if (allChecked && githubLink && !showConfirmComplete) {
-        setShowConfirmComplete(true);
-      }
-    }, [todoList, githubLink]);    
   };
+
 
   const handleProjectComplete = async () => {
     if (!userId || !selectedModule) return;
@@ -209,254 +217,405 @@ const Projects = () => {
 
 
   return (
-    
     <Container maxWidth="md">
-      <Typography variant="h4" sx={{ mt: 4, mb: 2, color: "#5500aa", fontWeight: "bold" }}>🚀 Projects</Typography>
-
+      <Typography 
+        variant="h4" 
+        sx={{ 
+          mt: 4, 
+          mb: 2, 
+          background: 'linear-gradient(45deg, #5500aa, #7733bb)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          fontWeight: 800,
+          textAlign: "center"
+        }}
+      >
+        🚀 Projects
+      </Typography>
+  
       {loading ? (
         <CircularProgress sx={{ color: "#5500aa" }} />
       ) : (
-    <FormControl fullWidth sx={{ mb: 3 }}>
-      <InputLabel id="module-select-label">Select Module</InputLabel>
-      <Select
-        labelId="module-select-label"
-        value={selectedModule?.id || ""}
-        onChange={(e) => {
-          const module = modules.find((m) => m.id === e.target.value);
-          if (module) selectModule(module);
-        }}
-      >
-        {modules.map((module) => (
-          <MenuItem key={module.id} value={module.id}>
-            {module.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+        <FormControl 
+          fullWidth 
+          sx={{ 
+            mb: 3,
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': { borderColor: '#ddaaff' },
+              '&:hover fieldset': { borderColor: '#5500aa' },
+              '&.Mui-focused fieldset': { borderColor: '#5500aa' }
+            }
+          }}
+        >
+          <InputLabel id="module-select-label" sx={{ color: '#5500aa' }}>Select Module</InputLabel>
+          <Select
+            labelId="module-select-label"
+            value={selectedModule?.id || ""}
+            onChange={(e) => {
+              const module = modules.find((m) => m.id === e.target.value);
+              if (module) selectModule(module);
+            }}
+          >
+            {modules.map((module) => (
+              <MenuItem 
+                key={module.id} 
+                value={module.id}
+                sx={{
+                  '&:hover': { backgroundColor: '#f8f5ff' },
+                  '&.Mui-selected': {
+                    backgroundColor: '#f0e6ff',
+                    '&:hover': { backgroundColor: '#e6d0ff' }
+                  }
+                }}
+              >
+                {module.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       )}
-
-      {/* Selected Module & Generate Project Button */}
+  
       {selectedModule && (
         <Card sx={{ 
           mt: 4, 
-          backgroundColor: "#f8f5ff", 
-          borderRadius: "12px",
-          boxShadow: '0 4px 12px rgba(85, 0, 170, 0.1)',
+          background: 'linear-gradient(135deg, #f8f5ff 0%, #ffffff 100%)',
+          borderRadius: "16px",
+          boxShadow: '0 8px 32px rgba(85, 0, 170, 0.08)',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 12px 48px rgba(85, 0, 170, 0.12)',
+          }
         }}>
-  <CardContent>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" sx={{ color: "#5500aa" }}>
-          {selectedModule.name} - Project Idea
-        </Typography>
-        {todoList.length > 0 && (
-          <Box sx={{ width: '200px' }}>
-            <LinearProgress
-              variant="determinate"
-              value={(completedTasks / todoList.length) * 100}
-              sx={{ height: 8, borderRadius: 4 }}
-            />
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {completedTasks} of {todoList.length} tasks completed
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h5" sx={{ 
+                color: "#5500aa",
+                fontWeight: 700
+              }}>
+                {selectedModule.name} - Project Idea
+              </Typography>
+              {todoList.length > 0 && (
+                <Box sx={{ width: '200px' }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={(completedTasks / todoList.length) * 100}
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      backgroundColor: '#f0e6ff',
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: '#5500aa'
+                      }
+                    }}
+                  />
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', textAlign: 'right', mt: 0.5 }}>
+                    {completedTasks} of {todoList.length} tasks completed
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+            <Typography variant="body1" sx={{ color: "text.secondary" }}>
+              Proficiency Level: {selectedModule.proficiency || 0}%
             </Typography>
-          </Box>
-        )}
-      </Box>
-      <Typography variant="body1" sx={{ color: "text.secondary" }}>
-        Proficiency Level: {selectedModule.proficiency || 0}%
-      </Typography>
-      
-      {!projectDescription && (
-        <Button
-          variant="contained"
-          color="secondary"
-          sx={{ mt: 2 }}
-          onClick={generateProject}
-          disabled={generating}
-        >
-          {generating ? "Generating..." : "Generate Project"}
-        </Button>
+            
+            {!projectDescription && (
+              <Button
+                variant="contained"
+                sx={{ 
+                  mt: 2,
+                  background: 'linear-gradient(45deg, #5500aa, #7733bb)',
+                  fontWeight: 600,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #4a0099, #662aa6)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(85, 0, 170, 0.2)'
+                  }
+                }}
+                onClick={generateProject}
+                disabled={generating}
+              >
+                {generating ? "Generating..." : "Generate Project"}
+              </Button>
+            )}
+  
+            {generating && <CircularProgress sx={{ mt: 2, color: "#5500aa" }} />}
+          </CardContent>
+        </Card>
       )}
-
-      {generating && <CircularProgress sx={{ mt: 2, color: "#5500aa" }} />}
-    </CardContent>
-  </Card>
-      )}
-
-      {/* AI-Generated Project Description */}
+  
       {projectDescription && (
-  <Card
-    sx={{
-      mt: 4,
-      backgroundColor: "#fafaff",
-      borderRadius: "16px",
-      p: 3,
-      boxShadow: "0 8px 20px rgba(85, 0, 170, 0.1)"
-    }}
-  >
-    <CardContent>
-
-      {/* 💡 Project Idea */}
-      <Box
-        sx={{
-          backgroundColor: "#fffde7",
-          borderRadius: "12px",
-          p: 2,
-          mb: 3,
-          boxShadow: "inset 0 0 6px rgba(0,0,0,0.05)"
-        }}
-      >
-        <Typography variant="h6" sx={{ color: "#f9a825" }}>💡 Project Idea</Typography>
-        <Typography variant="body2" sx={{ mt: 1 }}>{projectDescription}</Typography>
-      </Box>
-
-      {/* 🧰 Tech Stack */}
-      {techStack.length > 0 && (
-        <Box
+        <Card
           sx={{
-            backgroundColor: "#e3f2fd",
-            borderLeft: "6px solid #2196f3",
-            borderRadius: "12px",
-            p: 2,
-            mb: 3
+            mt: 4,
+            background: '#ffffff',
+            borderRadius: "16px",
+            p: 3,
+            boxShadow: "0 8px 32px rgba(85, 0, 170, 0.08)"
           }}
         >
-          <Typography variant="h6" sx={{ color: "#2196f3" }}>🧰 Tech Stack</Typography>
-          <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-            {techStack.map((tech, index) => (
-              <Chip key={index} label={tech} color="primary" variant="outlined" />
-            ))}
+          <CardContent>
+            <Box
+              sx={{
+                backgroundColor: "#e8f5e9",
+                borderRadius: "12px",
+                p: 3,
+                mb: 3,
+                border: '1px solid #a5d6a7',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)'
+                }
+              }}
+              >
+              <Typography variant="h6" sx={{ color: "#5500aa", fontWeight: 700, mb: 2 }}>
+                💡 Project Idea
+              </Typography>
+              <Typography variant="body1">{projectDescription}</Typography>
+            </Box>
+  
+            {techStack.length > 0 && (
+              <Box
+                sx={{
+                  backgroundColor: "#e3f2fd",
+                  borderRadius: "12px",
+                  p: 3,
+                  mb: 3,
+                  border: '1px solid #90caf9',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                <Typography variant="h6" sx={{ color: "#5500aa", fontWeight: 700, mb: 2 }}>
+                  🧰 Tech Stack
+                </Typography>
+                <Box display="flex" flexWrap="wrap" gap={1}>
+                  {techStack.map((tech, index) => (
+                    <Chip 
+                      key={index} 
+                      label={tech} 
+                      sx={{
+                        background: 'linear-gradient(135deg, #f0e6ff 0%, #e6d0ff 100%)',
+                        color: '#5500aa',
+                        fontWeight: 600,
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: '0 2px 8px rgba(85, 0, 170, 0.15)'
+                        }
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+  
+            {todoList.length > 0 && (
+              <Box
+                sx={{
+                  backgroundColor: "#fff8e1",
+                  borderRadius: "12px",
+                  p: 3,
+                  mb: 3,
+                  border: '1px solid #ffe082',
+                }}
+              >
+                <Typography variant="h6" sx={{ color: "#5500aa", fontWeight: 700, mb: 2 }}>
+                  📋 To-Do List
+                </Typography>
+                <List>
+                  {todoList.map((task, index) => (
+                    <ListItem 
+                      key={index} 
+                      disablePadding
+                      sx={{
+                        mb: 1,
+                        borderRadius: '8px',
+                        backgroundColor: task.completed ? '#f0e6ff' : '#ffffff',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateX(4px)',
+                          backgroundColor: task.completed ? '#e6d0ff' : '#f8f5ff'
+                        }
+                      }}
+                    >
+                      <Checkbox
+                        checked={task.completed}
+                        onChange={() => handleCheckboxChange(index)}
+                        sx={{
+                          color: '#ddaaff',
+                          '&.Mui-checked': {
+                            color: '#5500aa'
+                          }
+                        }}
+                      />
+                      <ListItemText 
+                        primary={task.text}
+                        sx={{
+                          textDecoration: task.completed ? 'line-through' : 'none',
+                          color: task.completed ? 'text.secondary' : 'text.primary'
+                        }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+                <LinearProgress
+                  variant="determinate"
+                  value={(completedTasks / todoList.length) * 100}
+                  sx={{ 
+                    mt: 2,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#f0e6ff',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: '#5500aa'
+                    }
+                  }}
+                />
+              </Box>
+            )}
+  
+              <Box
+                sx={{
+                  backgroundColor: "#fce4ec",
+                  borderRadius: "12px",
+                  p: 3,
+                  border: '1px solid #f48fb1'
+                }}
+              >
+              <Typography variant="h6" sx={{ color: "#5500aa", fontWeight: 700, mb: 2 }}>
+                🔗 GitHub Repository
+              </Typography>
+              {githubLink ? (
+                <Link 
+                  href={githubLink} 
+                  target="_blank" 
+                  rel="noopener"
+                  sx={{
+                    color: '#5500aa',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    '&:hover': {
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  {githubLink}
+                </Link>
+              ) : (
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  label="Paste your GitHub repo link"
+                  value={tempGithubLink}
+                  onChange={(e) => setTempGithubLink(e.target.value)}
+                  onBlur={() => {
+                    setGithubLink(tempGithubLink.trim());
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: '#ddaaff' },
+                      '&:hover fieldset': { borderColor: '#5500aa' },
+                      '&.Mui-focused fieldset': { borderColor: '#5500aa' }
+                    }
+                  }}
+                />
+              )}
+            </Box>
+  
+            {isProjectReadyToComplete() && !showConfirmComplete && (
+              <Button
+                variant="contained"
+                disabled={!isProjectReadyToComplete()}
+                sx={{ 
+                  mt: 3,
+                  background: 'linear-gradient(45deg, #5500aa, #7733bb)',
+                  fontWeight: 600,
+                  width: '100%',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #4a0099, #662aa6)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(85, 0, 170, 0.2)'
+                  }
+                }}
+                onClick={() => setShowConfirmComplete(true)}
+              >
+                Complete Project
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+  
+      {showConfirmComplete && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 1300,
+            backgroundColor: "#ffffff",
+            borderRadius: "16px",
+            boxShadow: "0 24px 48px rgba(85, 0, 170, 0.2)",
+            p: 4,
+            width: "90%",
+            maxWidth: 400,
+            textAlign: "center",
+            animation: 'fadeIn 0.3s ease-out',
+            '@keyframes fadeIn': {
+              from: {
+                opacity: 0,
+                transform: 'translate(-50%, -48%)'
+              },
+              to: {
+                opacity: 1,
+                transform: 'translate(-50%, -50%)'
+              }
+            }
+          }}
+        >
+          <Typography variant="h6" sx={{ color: "#5500aa", fontWeight: 700, mb: 2 }}>
+            🎉 Ready to Complete?
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
+            You've completed all tasks and added your GitHub repo. Mark this project as done?
+          </Typography>
+          <Box display="flex" justifyContent="center" gap={2}>
+            <Button
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(45deg, #5500aa, #7733bb)',
+                fontWeight: 600,
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #4a0099, #662aa6)',
+                  transform: 'translateY(-2px)'
+                }
+              }}
+              onClick={handleProjectComplete}
+            >
+              Yes, Complete!
+            </Button>
+            <Button
+              variant="outlined"
+              sx={{
+                color: '#5500aa',
+                borderColor: '#5500aa',
+                fontWeight: 600,
+                '&:hover': {
+                  borderColor: '#7733bb',
+                  backgroundColor: '#f8f5ff'
+                }
+              }}
+              onClick={() => setShowConfirmComplete(false)}
+            >
+              Cancel
+            </Button>
           </Box>
         </Box>
       )}
-
-      {/* 📋 To-Do List */}
-      {todoList.length > 0 && (
-        <Box
-          sx={{
-            backgroundColor: "#fff8e1",
-            border: "2px dashed #ffb300",
-            borderRadius: "12px",
-            p: 2,
-            mb: 3,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-          }}
-        >
-          <Typography variant="h6" sx={{ color: "#ffb300" }}>📋 To-Do List</Typography>
-          <List>
-            {todoList.map((task, index) => (
-              <ListItem key={index} disablePadding>
-                <Checkbox
-                  checked={task.completed}
-                  onChange={() => handleCheckboxChange(index)}
-                />
-                <ListItemText primary={task.text} />
-              </ListItem>
-            ))}
-          </List>
-          <LinearProgress
-            variant="determinate"
-            value={(completedTasks / todoList.length) * 100}
-            sx={{ mt: 2 }}
-          />
-        </Box>
-      )}
-
-      {/* 🔗 GitHub Link */}
-      <Box
-        sx={{
-          backgroundColor: "#f3e5f5",
-          borderRadius: "12px",
-          p: 2,
-          mt: 3
-        }}
-      >
-        <Typography variant="h6" sx={{ color: "#8e24aa" }}>🔗 GitHub Repository</Typography>
-        {githubLink ? (
-          <Link href={githubLink} target="_blank" rel="noopener">
-            {githubLink}
-          </Link>
-        ) : (
-          <TextField
-            fullWidth
-            variant="outlined"
-            label="Paste your GitHub repo link"
-            value={tempGithubLink}
-            onChange={(e) => setTempGithubLink(e.target.value)}
-            onBlur={async () => {
-              if (tempGithubLink && !githubLink) {
-                setGithubLink(tempGithubLink);
-                setShowCompletionPopup(true);
-            
-                const completedProject = {
-                  moduleId: selectedModule.id,
-                  moduleName: selectedModule.name,
-                  description: projectDescription,
-                  githubLink: tempGithubLink,
-                  techStack,
-                  todoList,
-                  dateCompleted: new Date().toISOString(),
-                };
-            
-                const projectRef = doc(db, `users/${userId}/projects/${selectedModule.id}`);
-                const completedRef = doc(db, `users/${userId}/completedProjects/${selectedModule.id}`);
-            
-                // Save to completedProjects and delete from active
-                await setDoc(completedRef, completedProject);
-                await setDoc(projectRef, {}); // or use deleteDoc(projectRef) if you want it totally gone
-            
-                // Reset frontend state
-                setSelectedModule(null);
-                setProjectDescription(null);
-                setTechStack([]);
-                setTodoList([]);
-                setCompletedTasks(0);
-                setTempGithubLink('');
-              }
-            }}
-            
-            sx={{ mt: 1 }}
-          />
-        )}
-      </Box>
-    </CardContent>
-  </Card>
-)}
-{showConfirmComplete && (
-  <Card sx={{
-    position: "fixed",
-    bottom: 20,
-    right: 20,
-    backgroundColor: "#fff3e0",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-    p: 2,
-    zIndex: 10
-  }}>
-    <Typography variant="h6" sx={{ color: "#ef6c00" }}>
-      ✅ All tasks complete!
-    </Typography>
-    <Typography variant="body2" sx={{ mt: 1 }}>
-      Do you want to officially mark this project as completed?
-    </Typography>
-    <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-      <Button
-        variant="contained"
-        color="success"
-        onClick={handleProjectComplete}
-      >
-        Complete Project
-      </Button>
-      <Button
-        variant="outlined"
-        onClick={() => setShowConfirmComplete(false)}
-      >
-        Cancel
-      </Button>
-    </Box>
-  </Card>
-)}
-
-  </Container>
+    </Container>
   );
 };
 
