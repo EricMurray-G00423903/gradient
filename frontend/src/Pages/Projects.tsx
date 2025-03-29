@@ -39,8 +39,6 @@ const Projects = () => {
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
   const [showConfirmComplete, setShowConfirmComplete] = useState(false);
   
-
-
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -56,14 +54,25 @@ const Projects = () => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveProjectProgress({ githubLink });
+    };
+  
+    window.addEventListener("beforeunload", handleBeforeUnload);
+  
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      saveProjectProgress({ githubLink });
+    };
+  }, [githubLink, todoList, selectedModule, userId]);
+
   const isProjectReadyToComplete = () => {
     const allTasksDone = todoList.length > 0 && todoList.every(task => task.completed);
-    const hasGithubLink = !!githubLink.trim();
-    return allTasksDone && hasGithubLink;
+    const hasValidGithubLink = isValidGithubLink(githubLink);
+    return allTasksDone && hasValidGithubLink;
   };
   
-  
-
   const fetchModules = async (uid: string) => {
     setLoading(true);
     try {
@@ -113,7 +122,6 @@ const Projects = () => {
     }
   };
   
-
   const generateProject = async () => {
     if (!selectedModule) {
       console.error("No module selected.");
@@ -123,8 +131,6 @@ const Projects = () => {
     const projectRef = doc(db, `users/${userId}/projects/${selectedModule.id}`);
     const projectSnap = await getDoc(projectRef);
     
-  
-  
     setGenerating(true);
   
     const requestBody = {
@@ -148,7 +154,7 @@ const Projects = () => {
         throw new Error(data.error || "Failed to generate project");
       }
   
-      // ✅ Set frontend state
+      // Set frontend state
       setProjectDescription(data.description);
       setTechStack(data.techStack || []);
       setTodoList(
@@ -160,7 +166,7 @@ const Projects = () => {
       
       setCompletedTasks(0);
         
-      // ✅ Save to Firestore
+      // Save to Firestore
       await setDoc(projectRef, {
         description: data.description,
         techStack: data.techStack || [],
@@ -214,7 +220,20 @@ const Projects = () => {
     setGithubLink('');
   };
   
+  const saveProjectProgress = async (p0: { githubLink: string; }) => {
+    if (!userId || !selectedModule) return;
+  
+    const projectRef = doc(db, `users/${userId}/projects/${selectedModule.id}`);
+    await setDoc(projectRef, {
+      githubLink,
+      todoList
+    }, { merge: true }); 
+  };
 
+  const isValidGithubLink = (link: string) => {
+    return link.startsWith("https://github.com/") && link.trim().length > "https://github.com/".length;
+  };
+  
 
   return (
     <Container maxWidth="md">
@@ -511,7 +530,13 @@ const Projects = () => {
                   value={tempGithubLink}
                   onChange={(e) => setTempGithubLink(e.target.value)}
                   onBlur={() => {
-                    setGithubLink(tempGithubLink.trim());
+                    const trimmed = tempGithubLink.trim();
+                    if (isValidGithubLink(trimmed)) {
+                      setGithubLink(trimmed);
+                      saveProjectProgress({ githubLink: trimmed });
+                    } else {
+                      alert("Please enter a valid GitHub URL that starts with https://github.com/");
+                    }
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -521,14 +546,14 @@ const Projects = () => {
                     }
                   }}
                 />
+
               )}
             </Box>
   
             {isProjectReadyToComplete() && !showConfirmComplete && (
               <Button
                 variant="contained"
-                disabled={!isProjectReadyToComplete()}
-                sx={{ 
+                sx={{
                   mt: 3,
                   background: 'linear-gradient(45deg, #5500aa, #7733bb)',
                   fontWeight: 600,
@@ -544,6 +569,7 @@ const Projects = () => {
                 Complete Project
               </Button>
             )}
+
           </CardContent>
         </Card>
       )}
