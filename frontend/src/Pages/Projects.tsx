@@ -38,6 +38,8 @@ const Projects = () => {
   const [completedTasks, setCompletedTasks] = useState<number>(0);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
   const [showConfirmComplete, setShowConfirmComplete] = useState(false);
+  const [completedProjects, setCompletedProjects] = useState<any[]>([]);
+
   
   useEffect(() => {
     const auth = getAuth();
@@ -119,6 +121,17 @@ const Projects = () => {
       );
       setTodoList(list);
       setCompletedTasks(list.filter((task: { completed: any; }) => task.completed).length);
+
+      const completedRef = doc(db, `users/${userId}/completedProjects/${module.id}`);
+      const completedSnap = await getDoc(completedRef);
+
+      if (completedSnap.exists()) {
+        const completedData = completedSnap.data();
+        setCompletedProjects([completedData]); // you'll need a new `completedProjects` state
+      } else {
+        setCompletedProjects([]);
+}
+
     }
   };
   
@@ -362,6 +375,64 @@ const Projects = () => {
           </CardContent>
         </Card>
       )}
+
+      {completedProjects.length > 0 && (
+        <Card
+          sx={{
+            mt: 4,
+            backgroundColor: "#f4f4f4",
+            borderRadius: "16px",
+            p: 3,
+            border: "1px solid #ccc",
+            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05)"
+          }}
+        >
+          <CardContent>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: "#666", mb: 2 }}>
+              🗂️ Previous Projects
+            </Typography>
+            {completedProjects.map((project, index) => (
+              <Box
+                key={index}
+                sx={{
+                  backgroundColor: "#e0e0e0",
+                  p: 2,
+                  borderRadius: 2,
+                  mb: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'scale(1.01)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "#444" }}>
+                  {project.moduleName}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1, color: "#555" }}>
+                  Completed: {new Date(project.dateCompleted).toLocaleDateString()}
+                </Typography>
+                <Link 
+                  href={project.githubLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  component="a" // 👈 this is important!
+                  sx={{
+                    color: "#5500aa",
+                    fontWeight: 500,
+                    textDecoration: 'none',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
+                >
+                  View GitHub Repo
+                </Link>
+
+              </Box>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
   
       {projectDescription && (
         <Card
@@ -374,6 +445,9 @@ const Projects = () => {
           }}
         >
           <CardContent>
+          <Typography variant="h6" sx={{ color: "#5500aa", fontWeight: 800, mb: 2 }}>
+                Current Project 
+              </Typography>
             <Box
               sx={{
                 backgroundColor: "#e8f5e9",
@@ -387,6 +461,7 @@ const Projects = () => {
                 }
               }}
               >
+
               <Typography variant="h6" sx={{ color: "#5500aa", fontWeight: 700, mb: 2 }}>
                 💡 Project Idea
               </Typography>
