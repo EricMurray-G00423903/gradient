@@ -31,6 +31,8 @@ const ModuleDetails = () => {
   const [quizAssessmentSnackbarOpen, setQuizAssessmentSnackbarOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState("");
+  const [activeProject, setActiveProject] = useState<any | null>(null);
+
 
   // 🚀 Get User ID Dynamically on Mount
   useEffect(() => {
@@ -62,6 +64,14 @@ const ModuleDetails = () => {
       } finally {
         setIsLoading(false);
       }
+
+      // 🔥 Fetch active project
+        const activeProjectRef = doc(db, `users/${userId}/projects/${moduleId}`);
+        const activeProjectSnap = await getDoc(activeProjectRef);
+        if (activeProjectSnap.exists() && activeProjectSnap.data().description) {
+          setActiveProject(activeProjectSnap.data());
+        }
+
     };
     fetchModuleData();
   }, [moduleId, userId]);
@@ -239,6 +249,39 @@ const ModuleDetails = () => {
           Delete Module
         </Button>
       </Box>
+      {activeProject && (
+          <Card sx={{ 
+            mt: 4, 
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(85, 0, 170, 0.08)',
+            backgroundColor: "#ffffff",
+            border: '1px solid #ddbfff'
+          }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ color: "#5500aa", fontWeight: 700, mb: 1 }}>
+                📌 Active Project
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 2, color: "#333" }}>
+                {activeProject.description?.substring(0, 120)}...
+              </Typography>
+              <Button
+                variant="contained"
+                sx={{
+                  background: 'linear-gradient(45deg, #5500aa, #7733bb)',
+                  color: "#fff",
+                  fontWeight: 600,
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #4a0099, #662aa6)',
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+                onClick={() => navigate(`/projects?selected=${moduleId}`)}
+              >
+                🔍 View Project
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Updated quiz button logic */}
       {description && !hasBeenTested && (
