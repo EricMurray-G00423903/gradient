@@ -22,6 +22,7 @@ import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { db } from "../firebase";
 import { doc, getDoc, collection, getDocs, setDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useSearchParams } from "react-router-dom";
 
 const Projects = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -39,8 +40,17 @@ const Projects = () => {
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
   const [showConfirmComplete, setShowConfirmComplete] = useState(false);
   const [completedProjects, setCompletedProjects] = useState<any[]>([]);
+  const [searchParams] = useSearchParams();
+  const preselectedModuleId = searchParams.get("selected");
 
   
+  useEffect(() => {
+    if (preselectedModuleId && modules.length > 0) {
+      const preselected = modules.find((m) => m.id === preselectedModuleId);
+      if (preselected) selectModule(preselected);
+    }
+  }, [modules, preselectedModuleId]);
+
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
