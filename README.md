@@ -14,7 +14,7 @@
 
 ## 🎬 Demo Screencast
 
-[![Watch the Demo](https://img.youtube.com/vi/https://youtu.be/8fKkf8Lq4D0/0.jpg)](https://youtu.be/8fKkf8Lq4D0)
+[![Watch the Demo](https://img.youtube.com/vi/8fKkf8Lq4D0/0.jpg)](https://youtu.be/8fKkf8Lq4D0)
 
 Click the image above to watch the full demo.
 
