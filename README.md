@@ -12,6 +12,12 @@
   <a href="https://nullnvoid.dev/">https://nullnvoid.dev/</a>
 </p>
 
+## 🎬 Demo Screencast
+
+[![Watch the Demo](https://img.youtube.com/vi/https://youtu.be/8fKkf8Lq4D0/0.jpg)](https://youtu.be/8fKkf8Lq4D0)
+
+Click the image above to watch the full demo.
+
 ## 📚 Overview
 
 Gradient is an AI-powered educational platform that helps students track their learning progress, plan their studies effectively, and build projects that showcase their skills. Whether you're learning to code, studying for exams, or just expanding your knowledge, Gradient helps you stay organized and focused on what matters most.
